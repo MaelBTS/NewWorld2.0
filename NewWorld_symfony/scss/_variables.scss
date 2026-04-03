@@ -1,0 +1,32 @@
+/** FONTS **/
+$primary-font: "Roboto", sans-serif;
+$secondary-font: "Open Sans", sans-serif;
+
+/** WHITES **/
+$primary-white: #fff;
+$secondary-white: #cfc;
+
+/** BLACKS **/
+$primary-black: #000;
+
+/** COLORS **/
+$primary-color: #00AA00;
+$secondary-color: #004400;
+
+$success-color: #7DEF23;
+$danger-color: #FB4F4F;
+
+/** RADIUS **/
+$primary-radius: 15px;
+
+/** MARGINS **/
+$section-margin: 10rem;
+
+/** TRANSITIONS **/
+$primary-transition: all 0.3s ease;
+
+/** HOVER COLORS **/
+$primary-h-color: darken($primary-color, 10);
+$secondary-h-color: darken($secondary-color, 10);
+$primary-h-white: darken($primary-white, 10);
+$secondary-h-white: darken($secondary-white, 10);

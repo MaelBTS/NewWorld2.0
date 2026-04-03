@@ -1,0 +1,30 @@
+@import "variables";
+
+/** VENDOR **/
+@import "vendor/mixins";
+@import "vendor/reboot";
+@import "vendor/reset";
+@import "vendor/state";
+
+/** COMPONENTS **/
+@import "components/button";
+@import "components/card";
+@import "components/form";
+
+/** LAYOUT **/
+@import "layout/header";
+@import "layout/navbar";
+@import "layout/section";
+@import "layout/footer";
+
+:root {
+    background-color: $primary-white;
+}
+
+.error-message {
+    color: $danger-color;
+}
+
+.success-message {
+    color: $success-color;
+}

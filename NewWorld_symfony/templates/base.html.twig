@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <title>{% block title %}Welcome!{% endblock %}</title>
+        <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 128 128%22><text y=%221.2em%22 font-size=%2296%22>⚫️</text><text y=%221.3em%22 x=%220.2em%22 font-size=%2276%22 fill=%22%23fff%22>sf</text></svg>">
+
+        <!-- ICONS -->
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+        {% block stylesheets %}{% endblock %}
+        {% block javascripts %}
+            {% block importmap %}{{ importmap('app') }}{% endblock %}
+        {% endblock %}
+
+        <style>
+            .primary-navbar--wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    width: 100%;
+}
+
+.logout-btn {
+    position: absolute;
+    left: 20px; /* marge depuis le bord écran */
+    top: 50%;
+    transform: translateY(-50%);
+    
+    background: #111827;
+    color: white;
+    padding: 8px 14px;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: 0.2s;
+}
+
+.logout-btn:hover {
+    background: #065f46;
+    color: white;
+}
+        </style>
+    </head>
+
+    <nav class="primary-navbar">
+        <div class="primary-navbar--wrapper">
+
+            {% if app.user %}
+                <a href="{{ path('app_logout') }}" class="logout-btn">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                    Déconnexion
+                </a>
+            {% endif %}
+
+            <h1 class="primary-navbar__title">
+                New<span>World</span>
+            </h1>
+
+        </div>
+    </nav>
+
+    <body>
+        {% block body %}{% endblock %}
+    </body>
+</html>

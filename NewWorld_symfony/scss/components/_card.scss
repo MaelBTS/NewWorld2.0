@@ -1,0 +1,47 @@
+
+/* Card */
+.primary-card {
+    border: none;
+    border-radius: $primary-radius;
+    transition: $primary-transition;
+    background: $secondary-white;
+    width: 30rem;
+    
+    &:hover {
+    box-shadow: 0 10px 20px lighten($primary-color, 10);
+    transform: translateY(-5px);
+    }
+}
+
+.primary-card__header {
+    background: $primary-color;
+    color: $primary-white;
+    border-radius: $primary-radius $primary-radius 0 0;
+    padding: calc(1rem * 0.75);
+    text-align: center;
+    font-weight: bold;
+}
+
+.primary-card__body {
+    padding: calc(1rem * 1.5);
+    @include flex(column, center, center);
+}
+
+.primary-card__footer {
+    background: $primary-color;
+    color: $primary-white;
+    border-radius: 0 0 $primary-radius $primary-radius;
+    padding: calc(1rem * 0.75);
+    text-align: center;
+    font-weight: bold;
+    margin-top: 1rem;
+
+    a {
+        color: $secondary-white;
+        text-decoration: underline;
+
+        &:hover {
+            color: lighten($secondary-white, 10);
+        }
+    }
+}

@@ -1,0 +1,148 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}NewWorld - Se connecter{% endblock %}
+
+{% block body %}
+<style>
+    body {
+        background: #f4f7f6;
+        font-family: 'Inter', sans-serif;
+    }
+
+    .login-section {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        padding: 20px;
+    }
+
+    .card-login {
+        background: white;
+        border-radius: 12px;
+        padding: 40px 30px;
+        max-width: 400px;
+        width: 100%;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+    }
+
+    .card-login h2 {
+        text-align: center;
+        font-weight: 800;
+        color: #10b981;
+        margin-bottom: 30px;
+        font-size: 1.8rem;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-label {
+        display: block;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #4b5563;
+        margin-bottom: 8px;
+        text-transform: uppercase;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 12px 14px;
+        border-radius: 8px;
+        border: 1px solid #d1d5db;
+        font-size: 0.95rem;
+        transition: all 0.2s;
+    }
+
+    .form-control:focus {
+        border-color: #10b981;
+        box-shadow: 0 0 0 3px rgba(16,185,129,0.15);
+        outline: none;
+    }
+
+    .btn-login {
+        width: 100%;
+        padding: 12px;
+        background: #10b981;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 0.95rem;
+        transition: 0.3s;
+    }
+
+    .btn-login:hover {
+        background: #059669;
+    }
+
+    .error-message {
+        background: #fee2e2;
+        color: #b91c1c;
+        padding: 10px 14px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        font-size: 0.85rem;
+    }
+
+    .login-footer {
+        text-align: center;
+        margin-top: 25px;
+        font-size: 0.85rem;
+        color: #6b7280;
+    }
+
+    .login-footer a {
+        color: #10b981;
+        font-weight: 600;
+        text-decoration: none;
+    }
+
+    .login-footer a:hover {
+        text-decoration: underline;
+    }
+</style>
+
+<section class="login-section">
+    <div class="card-login">
+
+        <h2>Connexion</h2>
+
+        <form method="post">
+            {% if error %}
+                <div class="error-message">{{ error.messageKey|trans(error.messageData, 'security') }}</div>
+            {% endif %}
+
+            {% if app.user %}
+                <div>
+                    Vous êtes connecté comme {{ app.user.userIdentifier }},
+                    <a href="{{ logout_path() }}" class="btn-login" style="width:auto; display:inline-block; padding:6px 12px; margin-top:10px; font-size:0.85rem;">Déconnexion</a>
+                </div>
+            {% endif %}
+
+            <div class="form-group">
+                <label for="inputEmail" class="form-label">Email</label>
+                <input type="email" value="{{ last_username }}" name="email" id="inputEmail" class="form-control" autocomplete="email" required autofocus>
+            </div>
+
+            <div class="form-group">
+                <label for="inputPassword" class="form-label">Mot de passe</label>
+                <input type="password" name="password" id="inputPassword" class="form-control" autocomplete="current-password" required>
+            </div>
+
+            <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
+
+            <div class="form-group">
+                <button type="submit" class="btn-login">Se connecter</button>
+            </div>
+        </form>
+
+        <div class="login-footer">
+            Vous n'avez pas de compte ? <a href="/candidature">Candidater</a>
+        </div>
+
+    </div>
+</section>
+{% endblock %}

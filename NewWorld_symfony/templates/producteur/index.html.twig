@@ -1,0 +1,210 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Mon Profil{% endblock %}
+
+{% block body %}
+<style>
+    body {
+        margin: 0;
+        font-family: 'Inter', sans-serif;
+        background: #f9fafb;
+    }
+
+    .page {
+        padding: 60px 8%;
+    }
+
+    h1 {
+        font-size: 2.2rem;
+        font-weight: 800;
+        margin-bottom: 10px;
+        color: #111827;
+    }
+
+    .subtitle {
+        color: #6b7280;
+        margin-bottom: 40px;
+    }
+
+    .form-container {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 50px;
+    }
+
+    .section {
+        background: white;
+        padding: 30px;
+        border-radius: 12px;
+        border: 1px solid #f0f0f0;
+    }
+
+    .section-title {
+        font-weight: 700;
+        margin-bottom: 20px;
+        color: #065f46;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 12px;
+        border-radius: 8px;
+        border: 1px solid #e5e7eb;
+        transition: 0.2s;
+    }
+
+    .form-control:focus {
+        border-color: #10b981;
+        box-shadow: 0 0 0 3px rgba(16,185,129,0.15);
+        outline: none;
+    }
+
+    .full {
+        grid-column: span 2;
+    }
+
+    .actions {
+        margin-top: 40px;
+    }
+
+    .btn-save {
+        background: #111827;
+        color: white;
+        padding: 14px 30px;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        transition: 0.2s;
+    }
+
+    .btn-save:hover {
+        background: #065f46;
+    }
+
+    .danger {
+        margin-top: 50px;
+        padding: 20px;
+        border-radius: 10px;
+        background: #fff;
+        border: 1px solid #fee2e2;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .alert {
+        margin-bottom: 20px;
+    }
+
+    @media(max-width: 900px) {
+        .form-container {
+            grid-template-columns: 1fr;
+        }
+
+        .full {
+            grid-column: span 1;
+        }
+    }
+
+</style>
+
+<div class="page">
+
+    <h1>Mon profil</h1>
+    <div class="subtitle">Gérez vos informations personnelles</div>
+
+    {% for message in app.flashes('success') %}
+        <div class="alert alert-success">
+            {{ message }}
+        </div>
+    {% endfor %}
+
+    {{ form_start(form) }}
+
+    <div class="form-container">
+
+        <!-- INFOS -->
+        <div class="section">
+            <div class="section-title">Informations générales</div>
+
+            <div class="form-group">
+                {{ form_row(form.nom) }}
+            </div>
+
+            <div class="form-group">
+                {{ form_row(form.email, {'attr': {'readonly': 'readonly'}}) }}
+            </div>
+
+            <div class="form-group">
+                {{ form_row(form.telephone) }}
+            </div>
+
+            <div class="form-group">
+                {{ form_row(form.numeroSiret) }}
+            </div>
+        </div>
+
+        <!-- ADRESSE -->
+        <div class="section">
+            <div class="section-title">Adresse</div>
+
+            <div class="form-group">
+                {{ form_row(form.adresse) }}
+            </div>
+
+            <div class="form-group">
+                {{ form_row(form.codePostal) }}
+            </div>
+
+            <div class="form-group">
+                {{ form_row(form.ville) }}
+            </div>
+        </div>
+
+        <!-- PASSWORD -->
+        <div class="section full">
+            <div class="section-title">Sécurité</div>
+
+            <div class="form-group">
+                {{ form_row(form.plainPassword) }}
+            </div>
+        </div>
+
+    </div>
+
+    <div class="actions">
+        <button class="btn-save">Enregistrer les modifications</button>
+    </div>
+
+    {{ form_end(form) }}
+
+    <div class="danger">
+        <div>
+            <strong style="color:#dc2626;">Supprimer mon compte</strong><br>
+            <small>Cette action est irréversible</small>
+        </div>
+
+        <form method="post" action="{{ path('app_producteur_self_delete') }}"
+              onsubmit="return confirm('Confirmer la suppression ?');">
+            <input type="hidden" name="_token" value="{{ csrf_token('delete_account') }}">
+            <button class="btn btn-outline-danger btn-sm">Supprimer</button>
+        </form>
+    </div>
+
+</div>
+
+<script>
+    setTimeout(() => {
+        let alert = document.querySelector('.alert');
+        if (alert) {
+            let bsAlert = new bootstrap.Alert(alert);
+            bsAlert.close();
+        }
+    }, 4000);
+</script>
+
+{% endblock %}

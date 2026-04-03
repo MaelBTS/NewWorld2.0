@@ -1,0 +1,22 @@
+.primary-form {
+    width: 100%;
+    padding: 0.75rem;
+    border-radius: $primary-radius;
+    transition: $primary-transition;
+    margin-bottom: 1rem;
+    @include flex(column, center, center);
+}
+
+.primary-form:focus {
+    border-color: lighten($primary-color, 10);
+    box-shadow: 0 0 0 0.2rem rgba(46, 204, 113, 0.25);
+}
+
+.primary-form__label {
+    text-align: center;
+    display: block;
+}
+
+.primary-form__input {
+    border-radius: $primary-radius;
+}

@@ -1,0 +1,16 @@
+.primary-navbar {
+    background-color: $secondary-white;
+    width: 100%;
+    height: 3rem;
+    position: fixed;
+    @include flex(row, center, center);
+
+    h1 {
+        font-size: x-large;
+        font-weight: bold;
+        color: $primary-black;
+        span {
+            color: $primary-color;
+        }
+    }
+}

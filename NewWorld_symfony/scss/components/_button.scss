@@ -1,0 +1,22 @@
+.primary-btn {
+    @include flex(row, center, center);
+    padding: 0.5rem 1.5rem;
+    border-radius: $primary-radius;
+    font-weight: bold;
+    text-align: center;
+    transition: $primary-transition;
+    border: 2px solid $primary-color;
+    background: $primary-color;
+    color: $primary-white;
+    border-color: $primary-color;
+    cursor: pointer;
+    margin: 0.5rem 0;
+    width: 70%;
+    margin: 0 auto;
+
+    &:hover {
+        background: lighten($primary-color, 10);
+        border-color: lighten($primary-color, 10);
+        color: $primary-white;
+    }
+}

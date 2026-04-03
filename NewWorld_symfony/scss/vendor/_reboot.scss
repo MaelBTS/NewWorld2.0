@@ -1,0 +1,51 @@
+*{box-sizing: border-box}; 
+
+body, html {
+    scroll-behavior: smooth;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: $primary-font; 
+}
+
+p, a, ul, li, span, strong, em, 
+input, textarea, figcaption,
+table, thead, th, tbody, tr, td,
+form, input, label, button {
+    font-family: $secondary-font;
+}
+
+a {
+    text-decoration: none; 
+    &:hover{
+        text-decoration: none; 
+    }
+}
+
+input, button {
+    &:focus{
+        outline: none !important;
+    }
+}
+
+strong, b {
+    font-weight: bold !important; 
+}
+
+em, i {
+    font-style: italic !important;
+}
+
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track{
+    background: #d9d9d9;
+    padding: 1px;
+}
+
+::-webkit-scrollbar-thumb{
+    background: $primary-black;
+    border-radius: 8px;
+}
