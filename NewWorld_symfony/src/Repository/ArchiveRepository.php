@@ -2,22 +2,22 @@
 
 namespace App\Repository;
 
-use App\Entity\ArchiveProducteur;
+use App\Entity\Archive;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
- * @extends ServiceEntityRepository<ArchiveProducteur>
+ * @extends ServiceEntityRepository<Archive>
  */
-class ArchiveProducteurRepository extends ServiceEntityRepository
+class ArchiveRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
     {
-        parent::__construct($registry, ArchiveProducteur::class);
+        parent::__construct($registry, Archive::class);
     }
 
     //    /**
-    //     * @return ArchiveProducteur[] Returns an array of ArchiveProducteur objects
+    //     * @return Archive[] Returns an array of Archive objects
     //     */
     //    public function findByExampleField($value): array
     //    {
@@ -31,7 +31,7 @@ class ArchiveProducteurRepository extends ServiceEntityRepository
     //        ;
     //    }
 
-    //    public function findOneBySomeField($value): ?ArchiveProducteur
+    //    public function findOneBySomeField($value): ?Archive
     //    {
     //        return $this->createQueryBuilder('a')
     //            ->andWhere('a.exampleField = :val')

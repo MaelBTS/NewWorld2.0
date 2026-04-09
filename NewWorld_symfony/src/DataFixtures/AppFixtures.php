@@ -20,8 +20,15 @@ class AppFixtures extends Fixture
         $admin->setPassword(password_hash('admin01', PASSWORD_DEFAULT));
         $admin->setRoles(["ROLE_ADMIN"]);
 
+        $user = new Users();
+        $user->setEmail("user@gmail.com");
+        $user->setPassword(password_hash('user01', PASSWORD_DEFAULT));
+        $user->setRoles(["ROLE_USER"]);
+
         $manager->persist($secre);
         $manager->persist($admin);
+        $manager->persist($user);
+
 
         $manager->flush();
     }
