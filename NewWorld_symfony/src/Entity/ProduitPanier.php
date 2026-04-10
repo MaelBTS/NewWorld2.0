@@ -4,7 +4,18 @@ namespace App\Entity;
 
 use App\Repository\ProduitPanierRepository;
 use Doctrine\ORM\Mapping as ORM;
+use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\Post;
+use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\Delete;
 
+#[ApiResource(operations: [
+    new Get(),
+    new Post(),
+    new Patch(),
+    new Delete()
+])]
 #[ORM\Entity(repositoryClass: ProduitPanierRepository::class)]
 class ProduitPanier
 {

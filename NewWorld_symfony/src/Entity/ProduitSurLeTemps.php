@@ -4,7 +4,14 @@ namespace App\Entity;
 
 use App\Repository\ProduitSurLeTempsRepository;
 use Doctrine\ORM\Mapping as ORM;
+use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\Get;
 
+#[ApiResource(operations: [
+    new Patch(),
+    new Get()
+])]
 #[ORM\Entity(repositoryClass: ProduitSurLeTempsRepository::class)]
 class ProduitSurLeTemps
 {
