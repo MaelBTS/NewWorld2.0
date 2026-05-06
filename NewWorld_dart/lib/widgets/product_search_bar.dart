@@ -2,16 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:newworld/services/user_preferences.dart';
 
 /// Barre de recherche customisée
-class MovieSearchBar extends StatefulWidget {
+class ProductSearchBar extends StatefulWidget {
   /// Méthode de callback appelée lors d'une modification de la recherche
   final void Function(String) onQueryChanged;
-  const MovieSearchBar({super.key, required this.onQueryChanged});
+  const ProductSearchBar({super.key, required this.onQueryChanged});
   @override
-  _MovieSearchBarState createState() => _MovieSearchBarState();
+  _ProductSearchBarState createState() => _ProductSearchBarState();
 }
 
 /// Gestion d’état de la barre de recherche
-class _MovieSearchBarState extends State<MovieSearchBar> {
+class _ProductSearchBarState extends State<ProductSearchBar> {
   /// Attribut local pour la gestion de la croix d'annulation
   String? search;
   @override

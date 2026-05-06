@@ -44,7 +44,7 @@ class _MainAppState extends State<MainApp> {
 
       _products = await service.getProducts(1);
 
-      Product? product = await service.getMovie(940721);
+      Product? product = await service.getProduct(940721);
 
       _loadingStatus = LoadingStatus.success;
     } catch (e) {
@@ -60,7 +60,7 @@ class _MainAppState extends State<MainApp> {
 
     switch (_loadingStatus) {
       case LoadingStatus.success:
-        screen = AppTabController(popularMovies: _products);
+        screen = AppTabController(products: _products);
         break;
       default:
         screen = StartScreen(

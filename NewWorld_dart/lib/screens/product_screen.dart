@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:newworld/models/user.dart';
+import 'package:newworld/screens/product_detail_screen.dart';
 
 import '../models/product.dart';
 import '../services/api_service.dart';
@@ -8,37 +8,37 @@ import '../services/cart_interaction.dart';
 import 'cart_screen.dart';
 import '../widgets/product_search_bar.dart';
 
-class UserScreen extends StatefulWidget {
-  final List<User> user;
+class ProductListScreen extends StatefulWidget {
+  final List<Product> products;
   final String? titleMode;
   final bool? displaySearchBar;
 
-  const UserScreen(
-      {super.key, required this.user, this.titleMode, this.displaySearchBar});
+  const ProductListScreen(
+      {super.key, required this.products, this.titleMode, this.displaySearchBar});
 
   @override
-  UserScreen createState() => UserScreen();
+  ProductListScreenState createState() => ProductListScreenState();
 }
 
-class UserScreenState extends State<UserScreen> {
+class ProductListScreenState extends State<ProductListScreen> {
   late String? title;
-  late List<User> user;
+  late List<Product> products;
   ApiService api = ApiService();
 
   @override
   void initState() {
     super.initState();
-    user = widget.user;
-    title = widget.titleMode ?? "Utilisateurs";
+    products = widget.products;
+    title = widget.titleMode ?? "Produits";
   }
 
   void onQueryChanged(String search) async {
     if (search.isEmpty) {
-      title = "utilisateurs populaires";
-      user = widget.user;
+      title = "produits";
+      products = widget.products;
     } else {
       title = "votre recherche";
-      user = await api.getUser(userId);
+      products = await api.searchForProducts(1, search);
     }
     setState(() {});
   }
@@ -61,14 +61,15 @@ class UserScreenState extends State<UserScreen> {
                   ),
                 )
               : const SizedBox.shrink(),
+          ProductSearchBar(onQueryChanged: onQueryChanged),
           Expanded(
             child: ListView.builder(
-              itemCount: user.length,
+              itemCount: products.length,
               itemBuilder: (context, index) {
-                User currentUser = user[index];
+                Product product = products[index];
                 return ListTile(
                   title: Text(
-                    currentUser.nom,
+                    product.nom,
                     style: TextStyle(color: UserPreferences().mainTextColor),
                   ),
                   subtitle: Text(
@@ -78,19 +79,34 @@ class UserScreenState extends State<UserScreen> {
                   ),
                   onTap: () async {
                     // Requête vers l'API pour récupérer toutes les informations
-                    // complémentaires de l'utilisateur
-                    user = (await ApiService().getUser(userId))!;
-                    // Navigue vers le UserScreen avec les détails de l'utilisateur
+                    // complémentaires du produit
+                    product = (await ApiService().getProduct(product.id))!;
+                    // Navigue vers le ProductScreen avec les détails du produit
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => UserScreen(
-                          userId: user.id,
+                        builder: (context) => ProductDetailScreen(
+                          productId: product.id,
                           onGoBack: () => setState(() {}),
                         ),
                       ),
                     );
                   },
+                  trailing: IconButton(
+                    icon: Icon(
+                      Favourites().isAFavourite(product)
+                          ? Icons.favorite
+                          : Icons.favorite_border,
+                      color: Colors.red,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        Favourites().isAFavourite(product)
+                            ? Favourites().removeFromFavourites(product)
+                            : Favourites().addToFavourites(product);
+                      });
+                    },
+                  ),
                 );
               },
             ),

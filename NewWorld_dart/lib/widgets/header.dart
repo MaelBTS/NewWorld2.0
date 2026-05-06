@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:newworld/services/api_service.dart';
 import '../models/product.dart';
-import '../screens/product_detail_screen.dart';
+import '../screens/product_screen.dart';
 import '../services/user_preferences.dart';
 import 'package:newworld/services/cart_interaction.dart';
 import 'package:newworld/services/user_gestion.dart';
@@ -9,14 +9,14 @@ import 'package:newworld/services/user_gestion.dart';
 /// Contrôleur permettant l'affichage des onglets: Accueil, Recherche, Favoris,
 /// et à regarder.
 class AppTabController extends StatefulWidget {
-  /// Liste des films populaires chargés à l'initialisation de l'application
-  final List<Product>? _popularMovies;
+  /// Liste des produits populaires chargés à l'initialisation de l'application
+  final List<Product>? _products;
 
   /// Constructeur de notre widget
   const AppTabController({
     super.key,
-    required List<Product>? popularMovies,
-  }) : _popularMovies = popularMovies;
+    required List<Product>? products,
+  }) : _products = products;
 
   /// Surcharge de la gestion d'état
   @override
@@ -26,50 +26,50 @@ class AppTabController extends StatefulWidget {
 class _AppTabControllerState extends State<AppTabController>
     with SingleTickerProviderStateMixin {
   TabController? _tabController;
-  late Future<List<Product>?> _moviesFuture;
+  late Future<List<Product>?> _productsFuture;
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
 // Ajout de l'écouteur
     _tabController!.addListener(_handleTabSelection);
-// Initialisation de la liste de films par défaut
-    _moviesFuture = loadMovies();
+// Initialisation de la liste de produits par défaut
+    _productsFuture = loadProducts();
   }
 
-  /// Méthode asynchrone chargeant la liste de films à afficher
-  Future<List<Product>?> loadMovies() async {
+  /// Méthode asynchrone chargeant la liste de produits à afficher
+  Future<List<Product>?> loadProducts() async {
     switch (_tabController!.index) {
 // Favoris
       case 1:
         // Récupérer la liste des identifiants
-        List<String> movieIds = Favourites().list();
-// Créer une liste vide pour stocker les films
-        List<Product> movies = [];
-// Boucler sur chaque identifiant pour récupérer les films correspondants
-        for (String movieId in movieIds) {
-// Appeler l'API pour chaque film et attendre le résultat
-          Product? movie = await ApiService().getMovie(int.parse(movieId));
-// Ajouter le film à la liste des films
-          if (movie != null) movies.add(movie);
+        List<String> productIds = Favourites().list();
+// Créer une liste vide pour stocker les produits
+        List<Product> products = [];
+// Boucler sur chaque identifiant pour récupérer les produits correspondants
+        for (String productId in productIds) {
+// Appeler l'API pour chaque produit et attendre le résultat
+          Product? product = await ApiService().getProduct(int.parse(productId));
+// Ajouter le produit à la liste des produits
+          if (product != null) products.add(product);
         }
-// Retourner la liste complète des films
-        return movies;
+// Retourner la liste complète des produits
+        return products;
 // A regarder
       case 2:
         // Récupérer la liste des identifiants
-        List<String> movieIds = ListToWatch().list();
-// Créer une liste vide pour stocker les films
-        List<Product> movies = [];
-// Boucler sur chaque identifiant pour récupérer les films correspondants
-        for (String movieId in movieIds) {
-// Appeler l'API pour chaque film et attendre le résultat
-          Product? movie = await ApiService().getMovie(int.parse(movieId));
-// Ajouter le film à la liste des films
-          if (movie != null) movies.add(movie);
+        List<String> productIds = ListToWatch().list();
+// Créer une liste vide pour stocker les produits
+        List<Product> products = [];
+// Boucler sur chaque identifiant pour récupérer les produits correspondants
+        for (String productId in productIds) {
+// Appeler l'API pour chaque produit et attendre le résultat
+          Product? product = await ApiService().getProduct(int.parse(productId));
+// Ajouter le produit à la liste des produits
+          if (product != null) products.add(product);
         }
-// Retourner la liste complète des films
-        return movies;
+// Retourner la liste complète des produits
+        return products;
       default:
         return [];
     }
@@ -78,7 +78,7 @@ class _AppTabControllerState extends State<AppTabController>
   void _handleTabSelection() {
     if (_tabController!.indexIsChanging) {
       setState(() {
-        _moviesFuture = loadMovies();
+        _productsFuture = loadProducts();
       });
     }
   }
@@ -107,10 +107,10 @@ class _AppTabControllerState extends State<AppTabController>
         children: [
           Container(
             color: UserPreferences().backgroundColor,
-            child: MoviesListScreen(movies: widget._popularMovies!),
+            child: ProductListScreen(products: widget._products!),
           ),
           FutureBuilder<List<Product>?>(
-            future: _moviesFuture,
+            future: _productsFuture,
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return Container(
@@ -121,13 +121,13 @@ class _AppTabControllerState extends State<AppTabController>
               } else if (snapshot.hasError) {
                 return Center(child: Text('Erreur: ${snapshot.error}'));
               } else {
-                return MoviesListScreen(
-                    movies: snapshot.data ?? [], titleMode: "Favoris");
+                return ProductListScreen(
+                    products: snapshot.data ?? [], titleMode: "Favoris");
               }
             },
           ),
           FutureBuilder<List<Product>?>(
-            future: _moviesFuture,
+            future: _productsFuture,
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return Container(
@@ -138,8 +138,8 @@ class _AppTabControllerState extends State<AppTabController>
               } else if (snapshot.hasError) {
                 return Center(child: Text('Erreur: ${snapshot.error}'));
               } else {
-                return MoviesListScreen(
-                    movies: snapshot.data ?? [], titleMode: "A regarder");
+                return ProductListScreen(
+                    products: snapshot.data ?? [], titleMode: "A regarder");
               }
             },
           ),

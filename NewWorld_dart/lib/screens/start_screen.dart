@@ -23,7 +23,7 @@ class StartScreen extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Image.asset("images/netflim.png"),
+            Image.asset("images/logo_new_world.png"),
             const SizedBox(height: 20),
             if (loadingStatus == LoadingStatus.loading) ...[
               CircularProgressIndicator(color: UserPreferences().netflimColor),

@@ -1,16 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:newworld/services/user_preferences.dart';
 
-class MovieActionsMenu extends StatelessWidget {
+class ProductActionsMenu extends StatelessWidget {
   // Callbacks pour les actions des boutons
   final VoidCallback onFavoritePressed;
-  final VoidCallback onAddToListPressed;
   final bool isFavorite;
 
-  const MovieActionsMenu({
+  const ProductActionsMenu({
     super.key,
     required this.onFavoritePressed,
-    required this.onAddToListPressed,
     required this.isFavorite,
   });
 
@@ -29,12 +27,6 @@ class MovieActionsMenu extends StatelessWidget {
               color: UserPreferences().mainTextColor,
             ),
             onPressed: onFavoritePressed,
-          ),
-          // Bouton Ajouter à votre liste
-          IconButton(
-            icon: Icon(Icons.playlist_add,
-                color: UserPreferences().mainTextColor),
-            onPressed: onAddToListPressed,
           ),
         ],
       ),

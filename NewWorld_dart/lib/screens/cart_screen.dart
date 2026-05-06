@@ -1,26 +1,27 @@
 import 'package:flutter/material.dart';
+import 'package:newworld/models/cart.dart';
 import '../models/product.dart';
 import '../services/api_service.dart';
 import '../services/user_preferences.dart';
 import '../widgets/product_card.dart';
 import 'user_gestion_screen.dart';
 
-/// Widget MovieScreen qui affiche les détails d'un film
-class MovieScreen extends StatefulWidget {
-  final int movieId;
+/// Widget CartScreen qui affiche les détails d'un produit
+class CartScreen extends StatefulWidget {
+  final int cartId;
   final VoidCallback onGoBack;
-  const MovieScreen({super.key, required this.movieId, required this.onGoBack});
+  const CartScreen({super.key, required this.cartId, required this.onGoBack});
   @override
-  State<MovieScreen> createState() => _MovieScreenState();
+  State<CartScreen> createState() => _CartScreenState();
 }
 
-class _MovieScreenState extends State<MovieScreen> {
+class _CartScreenState extends State<CartScreen> {
   String appBarTitle = "Chargement...";
-  late Future<Product?> movie;
+  late Future<Cart?> cart;
   @override
   void initState() {
     super.initState();
-    movie = ApiService().getMovie(widget.movieId);
+    cart = ApiService().getCart(widget.cartId);
   }
 
   @override
@@ -32,8 +33,8 @@ class _MovieScreenState extends State<MovieScreen> {
         backgroundColor: UserPreferences().netflimColor,
         foregroundColor: UserPreferences().mainTextColor,
       ),
-      body: FutureBuilder<Product?>(
-        future: movie,
+      body: FutureBuilder<Cart?>(
+        future: cart,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(
@@ -42,14 +43,14 @@ class _MovieScreenState extends State<MovieScreen> {
           } else if (snapshot.hasError) {
             return Center(child: Text('Erreur: ${snapshot.error}'));
           } else if (snapshot.hasData) {
-// Récupération du movie
-            final movie = snapshot.data;
-            if (movie != null) {
+// Récupération du panier
+            final cart = snapshot.data;
+            if (cart != null) {
 // Mettre à jour le titre de l'appBar une fois que le
-// film est chargé
+// produit est chargé
               WidgetsBinding.instance.addPostFrameCallback((_) {
                 setState(() {
-                  appBarTitle = movie.nom;
+                  appBarTitle = cart.nom;
                 });
               });
               return SingleChildScrollView(
@@ -63,15 +64,15 @@ class _MovieScreenState extends State<MovieScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            '${movie.tagline}',
+                            '${cart.tagline}',
                             style: Theme.of(context)
                                 .textTheme
                                 .bodyMedium
                                 ?.copyWith(
                                     color: UserPreferences().mainTextColor),
-                          ), // Affiche le slogan du film
+                          ), // Affiche le slogan du produit
                           Text(
-                            'Sortie le ${movie.releaseDate}',
+                            'Sortie le ${cart.releaseDate}',
                             style: Theme.of(context)
                                 .textTheme
                                 .bodyMedium
@@ -79,7 +80,7 @@ class _MovieScreenState extends State<MovieScreen> {
                                     color: UserPreferences().mainTextColor),
                           ), // Affiche la date de sortie
                           Text(
-                            'Genres: ${movie.genres?.join(', ')}',
+                            'Genres: ${cart.genres?.join(', ')}',
                             style: Theme.of(context)
                                 .textTheme
                                 .bodyMedium
@@ -87,7 +88,7 @@ class _MovieScreenState extends State<MovieScreen> {
                                     color: UserPreferences().mainTextColor),
                           ), // Affiche les genres
                           Text(
-                            'Durée: ${movie.runtime} minutes',
+                            'Durée: ${cart.runtime} minutes',
                             style: Theme.of(context)
                                 .textTheme
                                 .bodyMedium
@@ -95,7 +96,7 @@ class _MovieScreenState extends State<MovieScreen> {
                                     color: UserPreferences().mainTextColor),
                           ), // Affiche la durée
                           Text(
-                            'Note: ${movie.voteAverage}/10',
+                            'Note: ${cart.voteAverage}/10',
                             style: Theme.of(context)
                                 .textTheme
                                 .bodyMedium
@@ -103,7 +104,7 @@ class _MovieScreenState extends State<MovieScreen> {
                                     color: UserPreferences().mainTextColor),
                           ), // Affiche la note des internautes
                           const SizedBox(height: 8),
-                          // Synopsis du film
+                          // Synopsis du produit
                           Text(
                             "Synopsis",
                             style: Theme.of(context)
@@ -114,7 +115,7 @@ class _MovieScreenState extends State<MovieScreen> {
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            movie.description,
+                            cart.description,
                             textAlign: TextAlign.justify,
                             style: Theme.of(context)
                                 .textTheme
@@ -122,7 +123,7 @@ class _MovieScreenState extends State<MovieScreen> {
                                 ?.copyWith(
                                     color: UserPreferences().mainTextColor),
                           ),
-                          for (String key in movie.youtubeKey)
+                          for (String key in cart.youtubeKey)
                             ElevatedButton(
                               onPressed: () {
                                 Navigator.push(
@@ -138,9 +139,9 @@ class _MovieScreenState extends State<MovieScreen> {
                                 foregroundColor:
                                     UserPreferences().mainTextColor,
                               ),
-                              child: Text(movie
-                                  .youtubeTitle[movie.youtubeKey.indexOf(key)]),
-                            ), // Affiche les clés YouTube associées au film
+                              child: Text(cart
+                                  .youtubeTitle[cart.youtubeKey.indexOf(key)]),
+                            ), // Affiche les clés YouTube associées au produit
                         ],
                       ),
                     ),
@@ -148,22 +149,22 @@ class _MovieScreenState extends State<MovieScreen> {
                 ),
               );
             } else {
-// Gestion du cas où `movie` est null
-              return const Center(child: Text("Film non trouvé"));
+// Gestion du cas où `cart` est null
+              return const Center(child: Text("panier non trouvé"));
             }
           } else {
             return const Center(child: Text('Aucune donnée'));
           }
         },
       ),
-      bottomNavigationBar: FutureBuilder<Product?>(
-        future: movie,
+      bottomNavigationBar: FutureBuilder<Cart?>(
+        future: cart,
         builder: (context, snapshot) {
           if (!snapshot.hasData || snapshot.data == null) {
             return SizedBox.shrink(); // Pas d'erreur pendant loading
           }
 
-          final Product currentMovie = snapshot.data!;
+          final Cart currentCart = snapshot.data!;
         },
       ),
     );
