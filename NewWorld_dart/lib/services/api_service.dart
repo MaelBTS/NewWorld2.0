@@ -66,13 +66,40 @@ class ApiService {
       List<Product> products = [];
 
       for (Map<String, dynamic> json in results) {
+        String quantityType = await getQuantityType(json['quantite_type_id'] as int);
+        List<String> productOverTime = await getProductOverTime(json['id'] as int);
         // Transformation du JSON en objet Product
         Product product = jsonToProduct(json);
-
+        product.quantiteType = quantityType; // Mise à jour du type de quantité
+        product.prix = (productOverTime[2] as num).toDouble(); // Mise à jour du prix
+        product.tva = productOverTime[0]; // Mise à jour de la TVA
+        product.quantite = (productOverTime[1] as num).toDouble(); // Mise à jour de la quantité
         products.add(product);
       }
 
       return products;
+    } else {
+      throw response;
+    }
+  }
+
+  Future<String> getQuantityType(int id) async {
+    Response response = await getData("/quantite_types/$id");
+
+    if (response.statusCode == 200) {
+      Map<String, dynamic> data = response.data;
+      return data['type'] as String;
+    } else {
+      throw response;
+    }
+  }
+
+  Future<List<String>> getProductOverTime(int id) async {
+    Response response = await getData("/produit_sur_le_temps/$id");
+
+    if (response.statusCode == 200) {
+      Map<String, dynamic> data = response.data;
+      return [data['tva'] as String, data['quantite'] as String, data['prix_vente'] as String];
     } else {
       throw response;
     }
@@ -132,10 +159,6 @@ class ApiService {
     Product product = Product(
       id: json['id'] as int,
       nom: json['title'] as String,
-      quantiteType: json['overview'] as String,
-      prix: json['price'] as double,
-      tva: json['tax'] as String,
-      quantite: json['quantity'] as double,
     );
     return product;
   }

@@ -1,4 +1,3 @@
-
 /// Classe `Product` représente un modèle pour les données de produit.
 ///
 /// Cette classe fournit une structure pour stocker les informations essentielles d'un produit,
@@ -24,17 +23,19 @@
 class Product {
   final int id;
   final String nom;
-  final String quantiteType;
-  final double prix;
-  final String tva;
-  final double quantite;
+  String quantiteType = "";
+  double prix = 0.0;
+  String tva = "";
+  double quantite = 0.0;
+  String producteur = "";
 
-  Product({
+   Product({
     required this.id,
     required this.nom,
-    required this.quantiteType,
-    required this.prix,
-    required this.tva,
-    required this.quantite,
+    this.quantiteType = "",
+    this.prix = 0.0,
+    this.tva = "",
+    this.quantite = 0.0,
+    this.producteur = "",
   });
 }
