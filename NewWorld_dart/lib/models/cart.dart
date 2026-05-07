@@ -26,12 +26,12 @@ import 'package:newworld/models/product.dart';
 /// ```
 class Cart {
   final int id;
-  final User utilisateur;
+  User utilisateur;
   final String statut;
   final DateTime date_facturation;
   final DateTime date_livraison;
   final String commentaire;
-  final List<Product> produits;
+  List<Product> produits;
 
   Cart({
     required this.id,

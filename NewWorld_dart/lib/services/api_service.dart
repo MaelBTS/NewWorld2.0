@@ -68,12 +68,14 @@ class ApiService {
       for (Map<String, dynamic> json in results) {
         String quantityType = await getQuantityType(json['quantite_type_id'] as int);
         List<String> productOverTime = await getProductOverTime(json['id'] as int);
+        String producteur = await getProducteur(json['producteur_id'] as int);
         // Transformation du JSON en objet Product
         Product product = jsonToProduct(json);
         product.quantiteType = quantityType; // Mise à jour du type de quantité
         product.prix = (productOverTime[2] as num).toDouble(); // Mise à jour du prix
         product.tva = productOverTime[0]; // Mise à jour de la TVA
         product.quantite = (productOverTime[1] as num).toDouble(); // Mise à jour de la quantité
+        product.producteur = producteur; // Mise à jour du producteur
         products.add(product);
       }
 
@@ -95,11 +97,29 @@ class ApiService {
   }
 
   Future<List<String>> getProductOverTime(int id) async {
-    Response response = await getData("/produit_sur_le_temps/$id");
+    Response response = await getData("/produit_sur_le_temps");
+
+    if (response.statusCode == 200) {
+      Map data = response.data;
+
+      List<dynamic> results = data["results"];
+
+      for (Map<String, dynamic> json in results) {
+        if (json['produit_id'] == id && (json['date_fin_prix_vente'] > DateTime.now().toIso8601String().substring(0, 10) || json['date_fin_prix_vente'] == null) && (json['date_fin_tva'] > DateTime.now().toIso8601String().substring(0, 10) || json['date_fin_tva'] == null)) {
+          return [json['tva'] as String, json['quantite'] as String, json['prix_vente'] as String];
+        }
+      }
+      return ["0.0", "", "0.0"];
+    } else {
+      throw response;
+    }
+  }
+  Future<String> getProducteur(int id) async {
+    Response response = await getData("/producteurs/$id");
 
     if (response.statusCode == 200) {
       Map<String, dynamic> data = response.data;
-      return [data['tva'] as String, data['quantite'] as String, data['prix_vente'] as String];
+      return data['nom'] as String;
     } else {
       throw response;
     }
@@ -113,8 +133,9 @@ class ApiService {
   /// Sinon, lève une exception contenant la réponse de la requête.
   Future<List<Product>> searchForProducts(
       int pageNumber, String searchString) async {
-    Response response = await getData("/produits",
-        params: {'page': pageNumber, 'query': searchString});
+    Response response = await getData("/produits", params: {
+      'page': pageNumber,
+    });
 
     if (response.statusCode == 200) {
       Map data = response.data;
@@ -123,10 +144,17 @@ class ApiService {
       List<Product> products = [];
 
       for (Map<String, dynamic> json in results) {
-        // Transformation du JSON en objet Product
-        Product product = jsonToProduct(json);
-
-        products.add(product);
+        if (json['nom'].toString().toLowerCase().contains(searchString.toLowerCase())) {
+          String quantityType = await getQuantityType(json['quantite_type_id'] as int);
+          List<String> productOverTime = await getProductOverTime(json['id'] as int);
+          // Transformation du JSON en objet Product
+          Product product = jsonToProduct(json);
+          product.quantiteType = quantityType; // Mise à jour du type de quantité
+          product.prix = (productOverTime[2] as num).toDouble(); // Mise à jour du prix
+          product.tva = productOverTime[0]; // Mise à jour de la TVA
+          product.quantite = (productOverTime[1] as num).toDouble(); // Mise à jour de la quantité
+          products.add(product);
+        }
       }
 
       return products;
@@ -145,9 +173,42 @@ class ApiService {
     if (response.statusCode == 200) {
       Map<String, dynamic> json = response.data;
 
+      String quantityType = await getQuantityType(json['quantite_type_id'] as int);
+      List<String> productOverTime = await getProductOverTime(json['id'] as int);
       // Transformation du JSON en objet Product
       Product product = jsonToProduct(json);
+      product.quantiteType = quantityType; // Mise à jour du type de quantité
+      product.prix = (productOverTime[2] as num).toDouble(); // Mise à jour du prix
+      product.tva = productOverTime[0]; // Mise à jour de la TVA
+      product.quantite = (productOverTime[1] as num).toDouble(); // Mise à jour de la quantité
       return product;
+    } else {
+      throw response;
+    }
+  }
+
+  Future<User?> getUser(int userId) async {
+    Response response = await getData("/users/$userId");
+
+    if (response.statusCode == 200) {
+      Map<String, dynamic> json = response.data;
+      return jsonToUser(json);
+    } else {
+      throw response;
+    }
+  }
+
+  Future<Cart?> getCart(int cartId) async {
+    Response response = await getData("/paniers/$cartId");
+
+    if (response.statusCode == 200) {
+      Map<String, dynamic> json = response.data;
+      List<Product> products = [];
+      for (Map<String, dynamic> product in json['products'] as List<dynamic>) {
+        Product? p = await getProduct(product['id'] as int);
+        if (p != null) products.add(p);
+      }
+      return jsonToCart(json, products);
     } else {
       throw response;
     }
@@ -158,7 +219,7 @@ class ApiService {
   Product jsonToProduct(Map<String, dynamic> json) {
     Product product = Product(
       id: json['id'] as int,
-      nom: json['title'] as String,
+      nom: json['nom'] as String,
     );
     return product;
   }
@@ -173,17 +234,15 @@ class ApiService {
     return user;
   }
   
-  Cart jsonToCart(Map<String, dynamic> json) {
+  Cart jsonToCart(Map<String, dynamic> json, List<Product> products) {
     Cart cart = Cart(
       id: json['id'] as int,
-      utilisateur: jsonToUser(json['user'] as Map<String, dynamic>),
-      statut: json['status'] as String,
-      date_facturation: DateTime.parse(json['invoice_date'] as String),
-      date_livraison: DateTime.parse(json['delivery_date'] as String),
-      commentaire: json['comment'] as String,
-      produits: (json['products'] as List<dynamic>)
-          .map((p) => jsonToProduct(p as Map<String, dynamic>))
-          .toList(),
+      utilisateur: getUser( json['utilisateur_id'] as int) as User,
+      statut: json['statut'] as String,
+      date_facturation: DateTime.parse(json['date_facturation'] as String),
+      date_livraison: DateTime.parse(json['date_livraison'] as String),
+      commentaire: json['commentaire'] as String,
+      produits: products,
     );
     return cart;
   }

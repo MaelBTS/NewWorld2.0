@@ -6,11 +6,11 @@ use App\Repository\ProduitSurLeTempsRepository;
 use Doctrine\ORM\Mapping as ORM;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Patch;
-use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
 
 #[ApiResource(operations: [
     new Patch(),
-    new Get()
+    new GetCollection()
 ])]
 #[ORM\Entity(repositoryClass: ProduitSurLeTempsRepository::class)]
 class ProduitSurLeTemps
