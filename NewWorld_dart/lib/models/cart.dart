@@ -42,4 +42,8 @@ class Cart {
     required this.commentaire,
     required this.produits,
   });
+
+  String toString() {
+    return "Cart{id: $id, utilisateur: ${utilisateur.email}, statut: $statut, date_facturation: $date_facturation, date_livraison: $date_livraison, commentaire: $commentaire, produits: ${produits.map((p) => p.nom).join(', ')}}";
+  }
 }

@@ -17,7 +17,6 @@ use ApiPlatform\Metadata\Delete;
     new Get(),
     new Post(),
     new Patch(),
-    new Delete()
 ])]
 #[ORM\Entity(repositoryClass: PanierRepository::class)]
 class Panier

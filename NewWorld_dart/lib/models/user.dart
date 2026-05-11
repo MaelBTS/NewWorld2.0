@@ -32,4 +32,8 @@ class User {
     required this.password,
     required this.roles,
   });
+
+  String toString() {
+    return "User{id: $id, email: $email, password: $password, roles: ${roles.join(', ')}}";
+  }
 }

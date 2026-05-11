@@ -5,7 +5,12 @@ namespace App\Entity;
 use App\Repository\ArchiveRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Post;
 
+#[ApiResource(operations: [
+    new Post(),
+])]
 #[ORM\Entity(repositoryClass: ArchiveRepository::class)]
 class Archive
 {

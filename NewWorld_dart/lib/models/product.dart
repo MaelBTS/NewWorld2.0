@@ -28,6 +28,7 @@ class Product {
   String tva = "";
   double quantite = 0.0;
   String producteur = "";
+  int idProduitSurLeTemps;
 
    Product({
     required this.id,
@@ -37,5 +38,6 @@ class Product {
     this.tva = "",
     this.quantite = 0.0,
     this.producteur = "",
+    this.idProduitSurLeTemps = 0,
   });
 }
