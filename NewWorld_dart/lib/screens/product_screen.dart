@@ -4,7 +4,7 @@ import 'package:newworld/screens/product_detail_screen.dart';
 import '../models/product.dart';
 import '../services/api_service.dart';
 import '../services/user_preferences.dart';
-import '../services/cart_interaction.dart';
+import '../services/favorite.dart';
 import 'cart_screen.dart';
 import '../widgets/product_search_bar.dart';
 

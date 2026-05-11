@@ -27,7 +27,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       backgroundColor: UserPreferences().backgroundColor,
       appBar: AppBar(
         title: Text(appBarTitle),
-        backgroundColor: UserPreferences().netflimColor,
+        backgroundColor: UserPreferences().newWorldColor,
         foregroundColor: UserPreferences().mainTextColor,
       ),
       body: FutureBuilder<Product?>(
@@ -36,7 +36,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(
                 child: CircularProgressIndicator(
-                    color: UserPreferences().netflimColor));
+                    color: UserPreferences().newWorldColor));
           } else if (snapshot.hasError) {
             return Center(child: Text('Erreur: ${snapshot.error}'));
           } else if (snapshot.hasData) {
@@ -82,7 +82,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                 api.addToCart(product);
                               },
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: UserPreferences().netflimColor,
+                                backgroundColor: UserPreferences().newWorldColor,
                                 foregroundColor:
                                     UserPreferences().mainTextColor,
                               ),

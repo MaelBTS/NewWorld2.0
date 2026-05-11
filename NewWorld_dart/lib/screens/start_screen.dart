@@ -26,7 +26,7 @@ class StartScreen extends StatelessWidget {
             Image.asset("images/logo_new_world.png"),
             const SizedBox(height: 20),
             if (loadingStatus == LoadingStatus.loading) ...[
-              CircularProgressIndicator(color: UserPreferences().netflimColor),
+              CircularProgressIndicator(color: UserPreferences().newWorldColor),
             ] else if (loadingStatus == LoadingStatus.error) ...[
               Text(
                 "-Service indisponible-",
@@ -34,7 +34,7 @@ class StartScreen extends StatelessWidget {
                     color: UserPreferences().mainTextColor, fontSize: 16),
               ),
               FloatingActionButton(
-                backgroundColor: UserPreferences().netflimColor,
+                backgroundColor: UserPreferences().newWorldColor,
                 onPressed: onReload,
                 child: const Icon(Icons.refresh),
               ),

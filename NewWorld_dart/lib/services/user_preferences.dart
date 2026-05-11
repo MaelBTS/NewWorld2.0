@@ -35,20 +35,20 @@ class UserPreferences {
     _prefs?.setString('username', value!);
   }
 
-  /// Getter pour 'netflim_color'. Retourne la valeur ou null si non défini.
-  Color get netflimColor {
+  /// Getter pour 'new_world_color'. Retourne la valeur ou null si non défini.
+  Color get newWorldColor {
     // Récupération de la valeur
-    int? aColorStr = _prefs?.getInt('netflim_color');
+    int? aColorStr = _prefs?.getInt('new_world_color');
 
     // Si valeur nulle par défaut on utilise le rouge Netflim
-    aColorStr = aColorStr ?? 0xffe50914;
+    aColorStr = aColorStr ?? 0xe5008000;
 
     return Color(aColorStr);
   }
 
-  /// Setter pour 'netflim_color'. Enregistre la valeur dans SharedPreferences.
-  set netflimColor(Color value) {
-    _prefs?.setInt('netflim_color', value.value);
+  /// Setter pour 'new_world_color'. Enregistre la valeur dans SharedPreferences.
+  set newWorldColor(Color value) {
+    _prefs?.setInt('new_world_color', value.value);
   }
 
   /// Getter pour 'background_color'. Retourne la valeur ou null si non défini.
@@ -57,7 +57,7 @@ class UserPreferences {
     int? aColorStr = _prefs?.getInt('background_color');
 
     // Si valeur nulle par défaut on utilise le rouge Netflim
-    aColorStr = aColorStr ?? 0xff000000;
+    aColorStr = aColorStr ?? 0xe5008000;
 
     return Color(aColorStr);
   }
@@ -73,7 +73,7 @@ class UserPreferences {
     int? aColorStr = _prefs?.getInt('main_text_color');
 
     // Si valeur nulle par défaut on utilise le rouge Netflim
-    aColorStr = aColorStr ?? 0xffffffff;
+    aColorStr = aColorStr ?? 0xe5008000;
 
     return Color(aColorStr);
   }
@@ -89,7 +89,7 @@ class UserPreferences {
     int? aColorStr = _prefs?.getInt('secondary_text_color');
 
     // Si valeur nulle par défaut on utilise le rouge Netflim
-    aColorStr = aColorStr ?? Colors.grey.value;
+    aColorStr = aColorStr ?? const Color.fromARGB(255, 60, 60, 60).value;
 
     return Color(aColorStr);
   }

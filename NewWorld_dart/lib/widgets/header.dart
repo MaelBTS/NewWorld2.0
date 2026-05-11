@@ -3,8 +3,7 @@ import 'package:newworld/services/api_service.dart';
 import '../models/product.dart';
 import '../screens/product_screen.dart';
 import '../services/user_preferences.dart';
-import 'package:newworld/services/cart_interaction.dart';
-import 'package:newworld/services/user_gestion.dart';
+import 'package:newworld/services/favorite.dart';
 
 /// Contrôleur permettant l'affichage des onglets: Accueil, Recherche, Favoris,
 /// et à regarder.
@@ -88,15 +87,15 @@ class _AppTabControllerState extends State<AppTabController>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Center(child: Text('NetFlim')),
-        backgroundColor: UserPreferences().netflimColor,
+        title: const Center(child: Text('New World')),
+        backgroundColor: UserPreferences().newWorldColor,
         foregroundColor: UserPreferences().mainTextColor,
         bottom: TabBar(
           controller: _tabController,
           tabs: const [
             Tab(icon: Icon(Icons.home), text: 'Accueil'),
             Tab(icon: Icon(Icons.favorite), text: 'Favoris'),
-            Tab(icon: Icon(Icons.list), text: 'A regarder'),
+            Tab(icon: Icon(Icons.list), text: 'connexion'),
           ],
           labelStyle: const TextStyle(fontSize: 12),
           unselectedLabelStyle: const TextStyle(fontSize: 10),
@@ -117,7 +116,7 @@ class _AppTabControllerState extends State<AppTabController>
                     color: UserPreferences().backgroundColor,
                     child: Center(
                         child: CircularProgressIndicator(
-                            color: UserPreferences().netflimColor)));
+                            color: UserPreferences().newWorldColor)));
               } else if (snapshot.hasError) {
                 return Center(child: Text('Erreur: ${snapshot.error}'));
               } else {
@@ -134,7 +133,7 @@ class _AppTabControllerState extends State<AppTabController>
                     color: UserPreferences().backgroundColor,
                     child: Center(
                         child: CircularProgressIndicator(
-                            color: UserPreferences().netflimColor)));
+                            color: UserPreferences().newWorldColor)));
               } else if (snapshot.hasError) {
                 return Center(child: Text('Erreur: ${snapshot.error}'));
               } else {
