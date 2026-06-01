@@ -135,7 +135,12 @@ class ApiService {
     if (response.statusCode == 200) {
       Map data = response.data;
 
-      List<dynamic> results = data["results"];
+      final resultsData = data["results"];
+      if (resultsData == null || resultsData is! List) {
+        return [];
+      }
+
+      List<dynamic> results = resultsData;
       List<Product> products = [];
 
       for (Map<String, dynamic> json in results) {
@@ -149,11 +154,12 @@ class ApiService {
         // Transformation du JSON en objet Product
         Product product = jsonToProduct(json);
         product.quantiteType = quantityType; // Mise à jour du type de quantité
-        product.prix = (productOverTime[3] as num)
-            .toDouble(); // Mise à jour du prix
+        product.prix =
+            double.tryParse(productOverTime[3]) ?? 0.0; // Mise à jour du prix
         product.tva = productOverTime[1]; // Mise à jour de la TVA
-        product.quantite = (productOverTime[2] as num)
-            .toDouble(); // Mise à jour de la quantité
+        product.quantite =
+            double.tryParse(productOverTime[2]) ??
+            0.0; // Mise à jour de la quantité
         product.producteur = producteur; // Mise à jour du producteur
         product.idProduitSurLeTemps = int.parse(
           productOverTime[0],
@@ -184,7 +190,12 @@ class ApiService {
     if (response.statusCode == 200) {
       Map data = response.data;
 
-      List<dynamic> results = data["results"];
+      final resultsData = data["results"];
+      if (resultsData == null || resultsData is! List) {
+        return ["0", "", "0.0", "0.0"];
+      }
+
+      List<dynamic> results = resultsData;
 
       for (Map<String, dynamic> json in results) {
         if (json['produit_id'] == id &&
@@ -254,11 +265,12 @@ class ApiService {
           Product product = jsonToProduct(json);
           product.quantiteType =
               quantityType; // Mise à jour du type de quantité
-          product.prix = (productOverTime[3] as num)
-              .toDouble(); // Mise à jour du prix
+          product.prix =
+              double.tryParse(productOverTime[3]) ?? 0.0; // Mise à jour du prix
           product.tva = productOverTime[1]; // Mise à jour de la TVA
-          product.quantite = (productOverTime[2] as num)
-              .toDouble(); // Mise à jour de la quantité
+          product.quantite =
+              double.tryParse(productOverTime[2]) ??
+              0.0; // Mise à jour de la quantité
           product.idProduitSurLeTemps = int.parse(
             productOverTime[0],
           ); // Mise à jour de l'id du produit sur le temps
@@ -282,20 +294,33 @@ class ApiService {
     if (response.statusCode == 200) {
       Map<String, dynamic> json = response.data;
 
-      String quantityType = await getQuantityType(
-        json['quantite_type_id'] as int,
-      );
-      List<String> productOverTime = await getProductOverTime(
-        json['id'] as int,
-      );
+      final int? quantityTypeId = json['quantite_type_id'] is int
+          ? json['quantite_type_id'] as int
+          : null;
+      final int? productId = json['id'] is int ? json['id'] as int : null;
+
+      String quantityType = '';
+      if (quantityTypeId != null) {
+        quantityType = await getQuantityType(quantityTypeId);
+      }
+
+      List<String> productOverTime = productId != null
+          ? await getProductOverTime(productId)
+          : ["0", "", "0.0", "0.0"];
+
       // Transformation du JSON en objet Product
       Product product = jsonToProduct(json);
       product.quantiteType = quantityType; // Mise à jour du type de quantité
-      product.prix = (productOverTime[2] as num)
-          .toDouble(); // Mise à jour du prix
-      product.tva = productOverTime[0]; // Mise à jour de la TVA
-      product.quantite = (productOverTime[1] as num)
-          .toDouble(); // Mise à jour de la quantité
+      product.prix =
+          double.tryParse(productOverTime[3]) ?? 0.0; // Mise à jour du prix
+      product.tva = productOverTime.length > 1
+          ? productOverTime[1]
+          : ''; // Mise à jour de la TVA
+      product.quantite =
+          double.tryParse(
+            productOverTime.length > 2 ? productOverTime[2] : '0.0',
+          ) ??
+          0.0; // Mise à jour de la quantité
       return product;
     } else {
       throw response;

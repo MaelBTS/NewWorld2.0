@@ -5,6 +5,9 @@ import '../models/user.dart';
 import '../screens/product_screen.dart';
 import '../services/user_preferences.dart';
 import 'package:newworld/models/cart.dart';
+import '../screens/login_screen.dart';
+import '../screens/logout_screen.dart';
+import '../screens/register_screen.dart';
 
 /// Contrôleur permettant l'affichage des onglets: Accueil, Panier,
 /// Utilisateur et Déconnexion.
@@ -39,7 +42,7 @@ class _AppTabControllerState extends State<AppTabController>
     if (widget.isLoggedIn) {
       _tabController = TabController(length: 4, vsync: this);
     } else {
-      _tabController = TabController(length: 2, vsync: this);
+      _tabController = TabController(length: 3, vsync: this);
     }
     // Ajout de l'écouteur
     _tabController!.addListener(_handleTabSelection);
@@ -101,6 +104,7 @@ class _AppTabControllerState extends State<AppTabController>
               : [
                   Tab(icon: Icon(Icons.home), text: 'Accueil'),
                   Tab(icon: Icon(Icons.login), text: 'Connexion'),
+                  Tab(icon: Icon(Icons.app_registration), text: 'Inscription'),
                 ],
           labelStyle: const TextStyle(fontSize: 12),
           unselectedLabelStyle: const TextStyle(fontSize: 10),
@@ -206,7 +210,11 @@ class _AppTabControllerState extends State<AppTabController>
                 ),
                 Container(
                   color: UserPreferences().backgroundColor,
-                  child: const Center(child: Text('Veuillez vous connecter')),
+                  child: LoginScreen(),
+                ),
+                Container(
+                  color: UserPreferences().backgroundColor,
+                  child: RegisterScreen(),
                 ),
               ],
       ),

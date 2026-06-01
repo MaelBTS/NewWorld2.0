@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import '../services/user_preferences.dart';
 
-class LoginScreen extends StatefulWidget {
-  final VoidCallback? onLogin;
+class RegisterScreen extends StatefulWidget {
+  final VoidCallback? onRegister;
 
-  const LoginScreen({super.key, this.onLogin});
+  const RegisterScreen({super.key, this.onRegister});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  State<RegisterScreen> createState() => _RegisterScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _RegisterScreenState extends State<RegisterScreen> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
@@ -45,18 +45,18 @@ class _LoginScreenState extends State<LoginScreen> {
       });
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Connecté avec $email'),
+          content: Text('Inscrit avec $email'),
           backgroundColor: UserPreferences().newWorldColor,
         ),
       );
-      widget.onLogin?.call();
+      widget.onRegister?.call();
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Connexion')),
+      appBar: AppBar(title: const Text('Inscription')),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(20.0),
@@ -123,7 +123,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 color: UserPreferences().mainTextColor,
                               ),
                             )
-                          : const Text('Se connecter'),
+                          : const Text('S\'inscrire'),
                     ),
                   ],
                 ),

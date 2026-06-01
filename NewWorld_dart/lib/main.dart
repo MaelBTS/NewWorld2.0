@@ -44,12 +44,14 @@ class _MainAppState extends State<MainApp> {
 
       _products = await service.getProducts(1);
 
-      Product? product = await service.getProduct(940721);
+      Product? product = await service.getProduct(1);
 
       _loadingStatus = LoadingStatus.success;
-    } catch (e) {
-      _loadingStatus = LoadingStatus.error;
-    }
+    } catch (e, st) {
+  debugPrint('Erreur de chargement : $e');
+  debugPrint('$st');
+  _loadingStatus = LoadingStatus.error;
+}
 
     setState(() {});
   }
