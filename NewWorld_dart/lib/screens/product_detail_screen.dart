@@ -6,8 +6,7 @@ import '../services/user_preferences.dart';
 /// Widget ProductDetailScreen qui affiche les détails d'un produit
 class ProductDetailScreen extends StatefulWidget {
   final int productId;
-  final VoidCallback onGoBack;
-  const ProductDetailScreen({super.key, required this.productId, required this.onGoBack});
+  const ProductDetailScreen({super.key, required this.productId});
   @override
   State<ProductDetailScreen> createState() => _ProductDetailScreenState();
 }
@@ -78,8 +77,15 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                           ),
                           const SizedBox(height: 8),
                           ElevatedButton(
-                              onPressed: () {
-                                api.addToCart(product);
+                              onPressed: () async{
+                                int cartId = await ApiService().getCartIdByUserId(1) ?? -1;
+                                  if (cartId != -1) {
+                                    await ApiService().addToCart(cartId, product.id, 1);
+                                  } else {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(content: Text("Erreur: panier introuvable")),
+                                    );
+                                  }
                               },
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: UserPreferences().newWorldColor,
@@ -101,16 +107,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           } else {
             return const Center(child: Text('Aucune donnée'));
           }
-        },
-      ),
-      bottomNavigationBar: FutureBuilder<Product?>(
-        future: product,
-        builder: (context, snapshot) {
-          if (!snapshot.hasData || snapshot.data == null) {
-            return SizedBox.shrink(); // Pas d'erreur pendant loading
-          }
-
-          final Product currentProduct = snapshot.data!;
         },
       ),
     );

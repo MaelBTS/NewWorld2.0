@@ -15,7 +15,7 @@ class ProductActionsMenu extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BottomAppBar(
-      color: UserPreferences().netflimColor,
+      color: UserPreferences().newWorldColor,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: <Widget>[

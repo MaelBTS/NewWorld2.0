@@ -313,6 +313,27 @@ class ApiService {
     }
   }
 
+  /// Récupère l'identifiant du panier associé à un utilisateur.
+  ///
+  /// Retourne `null` si aucun panier n'est trouvé pour l'utilisateur.
+  Future<int?> getCartIdByUserId(int userId) async {
+    Response response = await getData(
+      "/paniers/",
+      params: {'utilisateur_id': userId},
+    );
+
+    if (response.statusCode == 200) {
+      Map<String, dynamic> data = response.data;
+      List<dynamic> results = data['results'] as List<dynamic>? ?? [];
+      if (results.isNotEmpty) {
+        return results.first['id'] as int?;
+      }
+      return null;
+    } else {
+      throw response;
+    }
+  }
+
   Future<Cart?> getCart(int cartId) async {
     Response response = await getData("/paniers/$cartId");
 
@@ -447,7 +468,9 @@ class ApiService {
   Future<int> deliverCart(Cart cart) async {
     Response response = await patchData(
       "/paniers/${cart.id}",
-      params: {'date_livraison': DateTime.now().toIso8601String().substring(0, 10)},
+      params: {
+        'date_livraison': DateTime.now().toIso8601String().substring(0, 10),
+      },
     );
 
     Response responseArchive = await postData(
@@ -468,14 +491,14 @@ class ApiService {
     }
   }
 
-  Future<int> postUser(String email, String password, List<String> roles) async {
+  Future<int> postUser(
+    String email,
+    String password,
+    List<String> roles,
+  ) async {
     Response response = await postData(
       "/users",
-      params: {
-        'email': email,
-        'password': password,
-        'roles': roles,
-      },
+      params: {'email': email, 'password': password, 'roles': roles},
     );
     Response responseCart = await postData(
       "/paniers/",
@@ -496,14 +519,15 @@ class ApiService {
     }
   }
 
-  Future<int> patchUser(int userId, String email, String password, List<String> roles) async {
+  Future<int> patchUser(
+    int userId,
+    String email,
+    String password,
+    List<String> roles,
+  ) async {
     Response response = await patchData(
       "/users/$userId",
-      params: {
-        'email': email,
-        'password': password,
-        'roles': roles,
-      },
+      params: {'email': email, 'password': password, 'roles': roles},
     );
 
     if (response.statusCode == 200) {

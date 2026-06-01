@@ -5,7 +5,6 @@ import '../models/product.dart';
 import '../services/api_service.dart';
 import '../services/user_preferences.dart';
 import '../services/favorite.dart';
-import 'cart_screen.dart';
 import '../widgets/product_search_bar.dart';
 
 class ProductListScreen extends StatefulWidget {
@@ -87,7 +86,6 @@ class ProductListScreenState extends State<ProductListScreen> {
                       MaterialPageRoute(
                         builder: (context) => ProductDetailScreen(
                           productId: product.id,
-                          onGoBack: () => setState(() {}),
                         ),
                       ),
                     );

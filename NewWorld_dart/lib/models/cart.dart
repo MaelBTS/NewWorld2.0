@@ -26,7 +26,7 @@ import 'package:newworld/models/product.dart';
 /// ```
 class Cart {
   final int id;
-  User utilisateur;
+  final User utilisateur;
   final String statut;
   final DateTime date_facturation;
   final DateTime date_livraison;

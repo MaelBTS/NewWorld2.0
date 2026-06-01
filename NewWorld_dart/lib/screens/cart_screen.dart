@@ -3,8 +3,7 @@ import 'package:newworld/models/cart.dart';
 import '../models/product.dart';
 import '../services/api_service.dart';
 import '../services/user_preferences.dart';
-import '../widgets/product_card.dart';
-import 'user_gestion_screen.dart';
+import 'product_detail_screen.dart';
 
 /// Widget CartScreen qui affiche les détails d'un produit
 class CartScreen extends StatefulWidget {
@@ -50,7 +49,7 @@ class _CartScreenState extends State<CartScreen> {
 // produit est chargé
               WidgetsBinding.instance.addPostFrameCallback((_) {
                 setState(() {
-                  appBarTitle = cart.nom;
+                  appBarTitle = cart.utilisateur.email;
                 });
               });
               return SingleChildScrollView(
@@ -64,7 +63,15 @@ class _CartScreenState extends State<CartScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            '${cart.tagline}',
+                            'état du panier: ${cart.statut}',
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyMedium
+                                ?.copyWith(
+                                    color: UserPreferences().mainTextColor),
+                          ),
+                          Text(
+                            'payé le ${cart.date_facturation}',
                             style: Theme.of(context)
                                 .textTheme
                                 .bodyMedium
@@ -72,7 +79,7 @@ class _CartScreenState extends State<CartScreen> {
                                     color: UserPreferences().mainTextColor),
                           ), // Affiche le slogan du produit
                           Text(
-                            'Sortie le ${cart.releaseDate}',
+                            'livré le ${cart.date_livraison}',
                             style: Theme.of(context)
                                 .textTheme
                                 .bodyMedium
@@ -80,68 +87,58 @@ class _CartScreenState extends State<CartScreen> {
                                     color: UserPreferences().mainTextColor),
                           ), // Affiche la date de sortie
                           Text(
-                            'Genres: ${cart.genres?.join(', ')}',
+                            cart.commentaire,
                             style: Theme.of(context)
                                 .textTheme
                                 .bodyMedium
                                 ?.copyWith(
                                     color: UserPreferences().mainTextColor),
                           ), // Affiche les genres
-                          Text(
-                            'Durée: ${cart.runtime} minutes',
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodyMedium
-                                ?.copyWith(
-                                    color: UserPreferences().mainTextColor),
-                          ), // Affiche la durée
-                          Text(
-                            'Note: ${cart.voteAverage}/10',
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodyMedium
-                                ?.copyWith(
-                                    color: UserPreferences().mainTextColor),
-                          ), // Affiche la note des internautes
                           const SizedBox(height: 8),
-                          // Synopsis du produit
-                          Text(
-                            "Synopsis",
-                            style: Theme.of(context)
-                                .textTheme
-                                .headlineSmall
-                                ?.copyWith(
-                                    color: UserPreferences().mainTextColor),
+                          ElevatedButton(
+                            onPressed: () => ApiService().payCart(cart), 
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: UserPreferences().newWorldColor,
+                              foregroundColor: UserPreferences().mainTextColor,
+                            ),
+                            child: Text('Payer'),
                           ),
-                          const SizedBox(height: 8),
-                          Text(
-                            cart.description,
-                            textAlign: TextAlign.justify,
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodyMedium
-                                ?.copyWith(
+                          for (Product produit in cart.produits)
+                            ListTile(
+                              title: Text(
+                                produit.nom,
+                                style: TextStyle(
                                     color: UserPreferences().mainTextColor),
-                          ),
-                          for (String key in cart.youtubeKey)
-                            ElevatedButton(
-                              onPressed: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) =>
-                                        YoutubeVideoScreen(videoId: key),
-                                  ),
-                                );
-                              },
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: UserPreferences().newWorldColor,
-                                foregroundColor:
-                                    UserPreferences().mainTextColor,
                               ),
-                              child: Text(cart
-                                  .youtubeTitle[cart.youtubeKey.indexOf(key)]),
-                            ), // Affiche les clés YouTube associées au produit
+                              subtitle: Text(
+                                'Plus de détails...',
+                                style: TextStyle(
+                                    color:
+                                        UserPreferences().secondaryTextColor),
+                              ),
+                              onTap: () async {
+                                // Requête vers l'API pour récupérer toutes les informations
+                                // complémentaires du produit
+                                final detailedProduct =
+                                    await ApiService().getProduct(produit.id);
+                                if (detailedProduct != null) {
+                                  // Navigue vers le ProductScreen avec les détails du produit
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          ProductDetailScreen(
+                                            productId: detailedProduct.id,
+                                          ),
+                                    ),
+                                  );
+                                } else {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(content: Text("Erreur: produit introuvable")),
+                                  );
+                                }
+                              },
+                            ),
                         ],
                       ),
                     ),
@@ -155,16 +152,6 @@ class _CartScreenState extends State<CartScreen> {
           } else {
             return const Center(child: Text('Aucune donnée'));
           }
-        },
-      ),
-      bottomNavigationBar: FutureBuilder<Cart?>(
-        future: cart,
-        builder: (context, snapshot) {
-          if (!snapshot.hasData || snapshot.data == null) {
-            return SizedBox.shrink(); // Pas d'erreur pendant loading
-          }
-
-          final Cart currentCart = snapshot.data!;
         },
       ),
     );

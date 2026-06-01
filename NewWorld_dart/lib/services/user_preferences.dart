@@ -41,7 +41,7 @@ class UserPreferences {
     int? aColorStr = _prefs?.getInt('new_world_color');
 
     // Si valeur nulle par défaut on utilise le rouge Netflim
-    aColorStr = aColorStr ?? 0xe5008000;
+    aColorStr = aColorStr ?? Color.fromARGB(255, 52, 133, 36).value;
 
     return Color(aColorStr);
   }
@@ -57,7 +57,7 @@ class UserPreferences {
     int? aColorStr = _prefs?.getInt('background_color');
 
     // Si valeur nulle par défaut on utilise le rouge Netflim
-    aColorStr = aColorStr ?? 0xe5008000;
+    aColorStr = aColorStr ?? Color.fromARGB(255, 42, 42, 42).value;
 
     return Color(aColorStr);
   }
@@ -73,7 +73,7 @@ class UserPreferences {
     int? aColorStr = _prefs?.getInt('main_text_color');
 
     // Si valeur nulle par défaut on utilise le rouge Netflim
-    aColorStr = aColorStr ?? 0xe5008000;
+    aColorStr = aColorStr ?? Color.fromARGB(255, 255, 254, 254).value;
 
     return Color(aColorStr);
   }
