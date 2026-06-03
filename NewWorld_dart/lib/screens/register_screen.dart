@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/user_preferences.dart';
+import '../services/api_service.dart';
 
 class RegisterScreen extends StatefulWidget {
   final VoidCallback? onRegister;
@@ -21,36 +22,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
-  }
-
-  Future<void> _submit() async {
-    if (!_formKey.currentState!.validate()) {
-      return;
-    }
-
-    setState(() {
-      _isSubmitting = true;
-    });
-
-    final email = _emailController.text.trim();
-    final password = _passwordController.text.trim();
-
-    await Future.delayed(const Duration(milliseconds: 300));
-
-    UserPreferences().username = email;
-
-    if (mounted) {
-      setState(() {
-        _isSubmitting = false;
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Inscrit avec $email'),
-          backgroundColor: UserPreferences().newWorldColor,
-        ),
-      );
-      widget.onRegister?.call();
-    }
   }
 
   @override
@@ -113,7 +84,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ),
                     const SizedBox(height: 24),
                     ElevatedButton(
-                      onPressed: _isSubmitting ? null : _submit,
+                      onPressed: _isSubmitting ? null : () async {
+                        await ApiService().postUser(
+                          _emailController.text.trim(),
+                          _passwordController.text.trim(),
+                          ["user"],
+                        );
+                      },
                       child: _isSubmitting
                           ? SizedBox(
                               height: 20,

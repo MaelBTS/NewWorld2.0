@@ -18,6 +18,20 @@ class ApiService {
   final API api = API();
   final Dio dio = Dio();
 
+  ApiService() {
+    dio.options.validateStatus = (_) => true;
+  }
+
+  String _normalizePath(String path) {
+    if (!path.startsWith('/')) {
+      path = '/$path';
+    }
+    if (path.length > 1 && path.endsWith('/')) {
+      path = path.substring(0, path.length - 1);
+    }
+    return path;
+  }
+
   /// Récupère les données depuis l'API en utilisant un chemin spécifié et des
   /// paramètres optionnels.
   ///
@@ -28,7 +42,7 @@ class ApiService {
   /// Sinon, lève une exception contenant la réponse de la requête.
   Future<Response> getData(String path, {Map<String, dynamic>? params}) async {
     // Construction de l'URL complète
-    String url = api.baseUrl + path;
+    String url = api.baseUrl + _normalizePath(path);
 
     // Ajout des paramètres de requête par défaut et ceux fournis
     Map<String, dynamic> query = {};
@@ -43,14 +57,16 @@ class ApiService {
 
     if (response.statusCode == 200) {
       return response;
-    } else {
-      throw response;
     }
+
+    throw Exception(
+      'GET $url failed with status ${response.statusCode}: ${response.statusMessage}',
+    );
   }
 
   Future<Response> postData(String path, {Map<String, dynamic>? params}) async {
     // Construction de l'URL complète
-    String url = api.baseUrl + path;
+    String url = api.baseUrl + _normalizePath(path);
 
     // Ajout des paramètres de requête par défaut et ceux fournis
     Map<String, dynamic> query = {};
@@ -61,13 +77,15 @@ class ApiService {
     }
 
     // Lancement de la requète
-    final response = await dio.post(url, queryParameters: query);
+    final response = await dio.post(url, data: query);
 
     if (response.statusCode == 200) {
       return response;
-    } else {
-      throw response;
     }
+
+    throw Exception(
+      'POST $url failed with status ${response.statusCode}: ${response.statusMessage}',
+    );
   }
 
   Future<Response> patchData(
@@ -75,7 +93,7 @@ class ApiService {
     Map<String, dynamic>? params,
   }) async {
     // Construction de l'URL complète
-    String url = api.baseUrl + path;
+    String url = api.baseUrl + _normalizePath(path);
 
     // Ajout des paramètres de requête par défaut et ceux fournis
     Map<String, dynamic> query = {};
@@ -86,13 +104,15 @@ class ApiService {
     }
 
     // Lancement de la requète
-    final response = await dio.patch(url, queryParameters: query);
+    final response = await dio.patch(url, data: query);
 
     if (response.statusCode == 200) {
       return response;
-    } else {
-      throw response;
     }
+
+    throw Exception(
+      'PATCH $url failed with status ${response.statusCode}: ${response.statusMessage}',
+    );
   }
 
   Future<Response> deleteData(
@@ -100,7 +120,7 @@ class ApiService {
     Map<String, dynamic>? params,
   }) async {
     // Construction de l'URL complète
-    String url = api.baseUrl + path;
+    String url = api.baseUrl + _normalizePath(path);
 
     // Ajout des paramètres de requête par défaut et ceux fournis
     Map<String, dynamic> query = {};
@@ -115,9 +135,11 @@ class ApiService {
 
     if (response.statusCode == 200) {
       return response;
-    } else {
-      throw response;
     }
+
+    throw Exception(
+      'DELETE $url failed with status ${response.statusCode}: ${response.statusMessage}',
+    );
   }
 
   /// Récupère une liste des produits populaires à partir de l'API.
@@ -242,7 +264,9 @@ class ApiService {
   ) async {
     Response response = await getData(
       "/produits",
-      params: {'page': pageNumber},
+      params: {'page': pageNumber,
+        'search': searchString,
+      },
     );
 
     if (response.statusCode == 200) {
@@ -328,11 +352,43 @@ class ApiService {
   }
 
   Future<User?> getUser(int userId) async {
-    Response response = await getData("/users/$userId");
+    try {
+      Response response = await getData("/users/$userId");
+      if (response.statusCode == 200) {
+        Map<String, dynamic> json = response.data;
+        return jsonToUser(json);
+      }
+    } catch (_) {
+      // Fallback when the detail endpoint is not available.
+      Response response = await getData("/users");
+      if (response.statusCode == 200) {
+        final List<dynamic> results = response.data['results'] as List<dynamic>? ?? [];
+        for (final dynamic userJson in results) {
+          if (userJson is Map<String, dynamic> && userJson['id'] == userId) {
+            return jsonToUser(userJson);
+          }
+        }
+      }
+    }
+
+    return null;
+  }
+  
+  Future<User?> login(String email, String password) async {
+    Response response = await getData("/users");
 
     if (response.statusCode == 200) {
       Map<String, dynamic> json = response.data;
-      return jsonToUser(json);
+      User? user;
+      User tryingUser;
+      for (Map<String, dynamic> userJson in json['results'] as List<dynamic>) {
+        tryingUser = jsonToUser(userJson);
+        if (tryingUser.email == email && tryingUser.password == password) {
+          user = tryingUser;
+          break;
+        }
+      }
+      return user;
     } else {
       throw response;
     }
@@ -416,8 +472,12 @@ class ApiService {
 
   Future<int> addToCart(int cartId, int productId, double quantity) async {
     Response response = await postData(
-      "/produit_paniers/?panier_id=$cartId",
-      params: {'product_id': productId, 'quantity': quantity},
+      "/produit_paniers",
+      params: {
+        'panier_id': cartId,
+        'product_id': productId,
+        'quantity': quantity,
+      },
     );
 
     if (response.statusCode == 200) {
@@ -526,7 +586,7 @@ class ApiService {
       params: {'email': email, 'password': password, 'roles': roles},
     );
     Response responseCart = await postData(
-      "/paniers/",
+      "/paniers",
       params: {
         'utilisateur_id': response.data['id'] as int,
         'statut': 'en cours',

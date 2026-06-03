@@ -32,6 +32,7 @@ class Cart {
   final DateTime date_livraison;
   final String commentaire;
   List<Product> produits;
+  late double totalPrice;
 
   Cart({
     required this.id,
@@ -41,7 +42,13 @@ class Cart {
     required this.date_livraison,
     required this.commentaire,
     required this.produits,
-  });
+    double totalPrice = 0.0,
+  }) {
+    totalPrice = 0.0;
+    for (Product produit in produits) {
+      totalPrice += produit.prix;
+    }
+  }
 
   String toString() {
     return "Cart{id: $id, utilisateur: ${utilisateur.email}, statut: $statut, date_facturation: $date_facturation, date_livraison: $date_livraison, commentaire: $commentaire, produits: ${produits.map((p) => p.nom).join(', ')}}";

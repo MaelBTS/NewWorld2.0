@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/user_preferences.dart';
+import '../services/api_service.dart';
+import '../models/user.dart';
 
 class LoginScreen extends StatefulWidget {
   final VoidCallback? onLogin;
@@ -35,21 +37,10 @@ class _LoginScreenState extends State<LoginScreen> {
     final email = _emailController.text.trim();
     final password = _passwordController.text.trim();
 
-    await Future.delayed(const Duration(milliseconds: 300));
+    User? user = await ApiService().login(email, password);
 
-    UserPreferences().username = email;
-
-    if (mounted) {
-      setState(() {
-        _isSubmitting = false;
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Connecté avec $email'),
-          backgroundColor: UserPreferences().newWorldColor,
-        ),
-      );
-      widget.onLogin?.call();
+    if (user != null) {
+      UserPreferences().username = email;
     }
   }
 
