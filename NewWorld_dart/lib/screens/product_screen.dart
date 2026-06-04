@@ -4,7 +4,6 @@ import 'package:newworld/screens/product_detail_screen.dart';
 import '../models/product.dart';
 import '../services/api_service.dart';
 import '../services/user_preferences.dart';
-import '../services/favorite.dart';
 import '../widgets/product_search_bar.dart';
 
 class ProductListScreen extends StatefulWidget {
@@ -74,7 +73,7 @@ class ProductListScreenState extends State<ProductListScreen> {
                   subtitle: Text(
                     'Plus de détails...',
                     style:
-                        TextStyle(color: UserPreferences().secondaryTextColor),
+                        TextStyle(color: UserPreferences().newWorldColor, fontStyle: FontStyle.italic),
                   ),
                   onTap: () async {
                     // Requête vers l'API pour récupérer toutes les informations
@@ -90,21 +89,6 @@ class ProductListScreenState extends State<ProductListScreen> {
                       ),
                     );
                   },
-                  trailing: IconButton(
-                    icon: Icon(
-                      Favourites().isAFavourite(product)
-                          ? Icons.favorite
-                          : Icons.favorite_border,
-                      color: Colors.red,
-                    ),
-                    onPressed: () {
-                      setState(() {
-                        Favourites().isAFavourite(product)
-                            ? Favourites().removeFromFavourites(product)
-                            : Favourites().addToFavourites(product);
-                      });
-                    },
-                  ),
                 );
               },
             ),

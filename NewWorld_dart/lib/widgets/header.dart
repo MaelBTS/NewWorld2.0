@@ -56,7 +56,9 @@ class _AppTabControllerState extends State<AppTabController>
     switch (_tabController!.index) {
       case 1:
         // Récupérer le panier de l'utilisateur
-        int cartId = await ApiService().getCartIdByUserId(1)?? -1; // Supposons que l'utilisateur a l'ID 1
+        int cartId =
+            await ApiService().getCartIdByUserId(1) ??
+            -1; // Supposons que l'utilisateur a l'ID 1
         if (cartId == -1) {
           return [];
         }
@@ -192,16 +194,7 @@ class _AppTabControllerState extends State<AppTabController>
                     }
                   },
                 ),
-                Container(
-                  color: UserPreferences().backgroundColor,
-                  child: Center(
-                    child: Text(
-                      'Appuyez sur déconnexion pour fermer la session.',
-                      style: TextStyle(color: UserPreferences().mainTextColor),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                ),
+                LogoutScreen(),
               ]
             : [
                 Container(

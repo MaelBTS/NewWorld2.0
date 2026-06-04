@@ -148,6 +148,17 @@ class ApiService {
   ///
   /// Retourne une liste d'objets `Product` si la requête est réussie.
   /// Sinon, lève une exception contenant la réponse de la requête.
+  int? _extractIdFromIri(dynamic value) {
+    if (value is int) return value;
+    if (value is String) {
+      final match = RegExp(r'/([0-9]+)$').firstMatch(value);
+      if (match != null) {
+        return int.tryParse(match.group(1)!);
+      }
+    }
+    return null;
+  }
+
   Future<List<Product>> getProducts(int pageNumber) async {
     Response response = await getData(
       "/produits",
@@ -157,7 +168,7 @@ class ApiService {
     if (response.statusCode == 200) {
       Map data = response.data;
 
-      final resultsData = data["results"];
+      final resultsData = data["results"] ?? data["member"];
       if (resultsData == null || resultsData is! List) {
         return [];
       }
@@ -166,14 +177,27 @@ class ApiService {
       List<Product> products = [];
 
       for (Map<String, dynamic> json in results) {
-        String quantityType = await getQuantityType(
-          json['quantite_type_id'] as int,
+        final int? quantityTypeId = _extractIdFromIri(
+          json['quantite_type_id'] ?? json['quantite_type'],
         );
+        final int? producteurId = _extractIdFromIri(
+          json['producteur_id'] ?? json['producteur'],
+        );
+
+        String quantityType = '';
+        if (quantityTypeId != null) {
+          quantityType = await getQuantityType(quantityTypeId);
+        }
+
         List<String> productOverTime = await getProductOverTime(
           json['id'] as int,
         );
-        String producteur = await getProducteur(json['producteur_id'] as int);
-        // Transformation du JSON en objet Product
+
+        String producteur = '';
+        if (producteurId != null) {
+          producteur = await getProducteur(producteurId);
+        }
+
         Product product = jsonToProduct(json);
         product.quantiteType = quantityType; // Mise à jour du type de quantité
         product.prix =
@@ -183,9 +207,7 @@ class ApiService {
             double.tryParse(productOverTime[2]) ??
             0.0; // Mise à jour de la quantité
         product.producteur = producteur; // Mise à jour du producteur
-        product.idProduitSurLeTemps = int.parse(
-          productOverTime[0],
-        ); // Mise à jour de l'id du produit sur le temps
+        product.idProduitSurLeTemps = int.tryParse(productOverTime[0]) ?? 0;
         products.add(product);
       }
 
@@ -235,7 +257,7 @@ class ApiService {
           ];
         }
       }
-      return ["0.0", "", "0.0"];
+      return ["0", "", "0.0", "0.0"];
     } else {
       throw response;
     }
@@ -264,28 +286,40 @@ class ApiService {
   ) async {
     Response response = await getData(
       "/produits",
-      params: {'page': pageNumber,
-        'search': searchString,
-      },
+      params: {'page': pageNumber, 'search': searchString},
     );
 
     if (response.statusCode == 200) {
       Map data = response.data;
 
-      List<dynamic> results = data["results"];
+      List<dynamic> results = data["results"] ?? data["member"] ?? [];
       List<Product> products = [];
 
       for (Map<String, dynamic> json in results) {
         if (json['nom'].toString().toLowerCase().contains(
           searchString.toLowerCase(),
         )) {
-          String quantityType = await getQuantityType(
-            json['quantite_type_id'] as int,
+          final int? quantityTypeId = _extractIdFromIri(
+            json['quantite_type_id'] ?? json['quantite_type'],
           );
+          final int? producteurId = _extractIdFromIri(
+            json['producteur_id'] ?? json['producteur'],
+          );
+
+          String quantityType = '';
+          if (quantityTypeId != null) {
+            quantityType = await getQuantityType(quantityTypeId);
+          }
+
           List<String> productOverTime = await getProductOverTime(
             json['id'] as int,
           );
-          // Transformation du JSON en objet Product
+
+          String producteur = '';
+          if (producteurId != null) {
+            producteur = await getProducteur(producteurId);
+          }
+
           Product product = jsonToProduct(json);
           product.quantiteType =
               quantityType; // Mise à jour du type de quantité
@@ -295,9 +329,10 @@ class ApiService {
           product.quantite =
               double.tryParse(productOverTime[2]) ??
               0.0; // Mise à jour de la quantité
-          product.idProduitSurLeTemps = int.parse(
-            productOverTime[0],
-          ); // Mise à jour de l'id du produit sur le temps
+          product.idProduitSurLeTemps =
+              int.tryParse(productOverTime[0]) ??
+              0; // Mise à jour de l'id du produit sur le temps
+          product.producteur = producteur;
           products.add(product);
         }
       }
@@ -318,9 +353,9 @@ class ApiService {
     if (response.statusCode == 200) {
       Map<String, dynamic> json = response.data;
 
-      final int? quantityTypeId = json['quantite_type_id'] is int
-          ? json['quantite_type_id'] as int
-          : null;
+      final int? quantityTypeId = _extractIdFromIri(
+        json['quantite_type_id'] ?? json['quantite_type'],
+      );
       final int? productId = json['id'] is int ? json['id'] as int : null;
 
       String quantityType = '';
@@ -362,7 +397,8 @@ class ApiService {
       // Fallback when the detail endpoint is not available.
       Response response = await getData("/users");
       if (response.statusCode == 200) {
-        final List<dynamic> results = response.data['results'] as List<dynamic>? ?? [];
+        final List<dynamic> results =
+            response.data['results'] as List<dynamic>? ?? [];
         for (final dynamic userJson in results) {
           if (userJson is Map<String, dynamic> && userJson['id'] == userId) {
             return jsonToUser(userJson);
@@ -373,7 +409,7 @@ class ApiService {
 
     return null;
   }
-  
+
   Future<User?> login(String email, String password) async {
     Response response = await getData("/users");
 
