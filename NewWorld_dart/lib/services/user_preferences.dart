@@ -26,6 +26,16 @@ class UserPreferences {
   }
 
   /// Getter pour 'id'. Retourne la valeur ou null si non défini.
+  bool? get isLoggedIn {
+    return _prefs?.getBool('isLoggedIn');
+  }
+
+  /// Setter pour 'id'. Enregistre la valeur dans SharedPreferences.
+  set isLoggedIn(bool? isLogged) {
+    _prefs?.setBool('isLoggedIn', isLogged!);
+  }
+
+  /// Getter pour 'id'. Retourne la valeur ou null si non défini.
   int? get userId {
     return _prefs?.getInt('id');
   }

@@ -411,14 +411,12 @@ class ApiService {
 
   Future<User?> login(String email, String password) async {
     Response response = await postData(
-      "/users", // ✅ endpoint dédié à l'authentification
+      "/login",
       params: {'email': email, 'password': password},
     );
 
     if (response.statusCode == 200 || response.statusCode == 201) {
-      return jsonToUser(
-        response.data,
-      ); // ✅ le serveur renvoie uniquement cet user
+      return jsonToUser(response.data);
     }
     return null;
   }
@@ -477,13 +475,16 @@ class ApiService {
   }
 
   User jsonToUser(Map<String, dynamic> json) {
-    User user = User(
+    return User(
       id: json['id'] as int,
       email: json['email'] as String,
-      password: json['password'] as String,
-      roles: json['roles'] as List<String>,
+      password: json['password']?.toString() ?? '', // ✅ null-safe
+      roles:
+          (json['roles'] as List<dynamic>?)
+              ?.map((e) => e.toString())
+              .toList() ??
+          [], // ✅ cast correct
     );
-    return user;
   }
 
   Cart jsonToCart(Map<String, dynamic> json, List<Product> products) {

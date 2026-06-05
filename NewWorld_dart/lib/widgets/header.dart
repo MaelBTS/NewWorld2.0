@@ -15,14 +15,11 @@ class AppTabController extends StatefulWidget {
   /// Liste des produits populaires chargés à l'initialisation de l'application
   final List<Product>? _products;
 
-  /// Indique si l'utilisateur est connecté.
-  final bool isLoggedIn;
 
   /// Constructeur de notre widget
   const AppTabController({
     super.key,
     required List<Product>? products,
-    this.isLoggedIn = false,
   }) : _products = products;
 
   /// Surcharge de la gestion d'état
@@ -39,7 +36,7 @@ class _AppTabControllerState extends State<AppTabController>
   @override
   void initState() {
     super.initState();
-    if (widget.isLoggedIn) {
+    if (UserPreferences().isLoggedIn == true) {
       _tabController = TabController(length: 4, vsync: this);
     } else {
       _tabController = TabController(length: 3, vsync: this);
@@ -99,7 +96,7 @@ class _AppTabControllerState extends State<AppTabController>
         foregroundColor: UserPreferences().mainTextColor,
         bottom: TabBar(
           controller: _tabController,
-          tabs: widget.isLoggedIn
+          tabs: UserPreferences().isLoggedIn == true
               ? [
                   Tab(icon: Icon(Icons.home), text: 'Accueil'),
                   Tab(icon: Icon(Icons.shopping_cart), text: 'Panier'),
@@ -117,7 +114,7 @@ class _AppTabControllerState extends State<AppTabController>
       ),
       body: TabBarView(
         controller: _tabController,
-        children: widget.isLoggedIn
+        children: UserPreferences().isLoggedIn == true
             ? [
                 Container(
                   color: UserPreferences().backgroundColor,

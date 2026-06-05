@@ -17,6 +17,8 @@ security:
             pattern: ^/(_profiler|_wdt|assets|build)/
             security: false
         main:
+            pattern: ^/
+            stateless: true
             lazy: true
             provider: app_user_provider
             custom_authenticator: App\Security\AppAuthAuthenticator
@@ -36,6 +38,7 @@ security:
         - { path: ^/secretaire, roles: ROLE_SECRETAIRE }
         - { path: ^/producteur, roles: ROLE_PRODUCTEUR }
         - { path: ^/login, roles: PUBLIC_ACCESS }
+        - { path: ^/api/login, roles: PUBLIC_ACCESS }
         
 when@test:
     security:
