@@ -25,7 +25,7 @@ class Product {
   final String nom;
   String quantiteType = "";
   double prix = 0.0;
-  String tva = "";
+  double tva = 0.0;
   double quantite = 0.0;
   String producteur = "";
   int idProduitSurLeTemps;
@@ -35,7 +35,7 @@ class Product {
     required this.nom,
     this.quantiteType = "",
     this.prix = 0.0,
-    this.tva = "",
+    this.tva = 0.0,
     this.quantite = 0.0,
     this.producteur = "",
     this.idProduitSurLeTemps = 0,

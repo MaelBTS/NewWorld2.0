@@ -60,7 +60,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            '${product.prix}€ (TVA: ${product.tva})',
+                            '${product.prix}€ (TVA: ${product.tva}%)',
                             style: Theme.of(context)
                                 .textTheme
                                 .bodyMedium

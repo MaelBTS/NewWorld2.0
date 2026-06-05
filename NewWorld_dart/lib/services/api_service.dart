@@ -189,7 +189,7 @@ class ApiService {
           quantityType = await getQuantityType(quantityTypeId);
         }
 
-        List<String> productOverTime = await getProductOverTime(
+        List<dynamic> productOverTime = await getProductOverTime(
           json['id'] as int,
         );
 
@@ -200,14 +200,11 @@ class ApiService {
 
         Product product = jsonToProduct(json);
         product.quantiteType = quantityType; // Mise à jour du type de quantité
-        product.prix =
-            double.tryParse(productOverTime[3]) ?? 0.0; // Mise à jour du prix
+        product.prix = productOverTime[3]; // Mise à jour du prix
         product.tva = productOverTime[1]; // Mise à jour de la TVA
-        product.quantite =
-            double.tryParse(productOverTime[2]) ??
-            0.0; // Mise à jour de la quantité
+        product.quantite = productOverTime[2]; // Mise à jour de la quantité
         product.producteur = producteur; // Mise à jour du producteur
-        product.idProduitSurLeTemps = int.tryParse(productOverTime[0]) ?? 0;
+        product.idProduitSurLeTemps = productOverTime[0];
         products.add(product);
       }
 
@@ -228,36 +225,29 @@ class ApiService {
     }
   }
 
-  Future<List<String>> getProductOverTime(int id) async {
+  Future<List<dynamic>> getProductOverTime(int id) async {
     Response response = await getData("/produit_sur_le_temps");
 
     if (response.statusCode == 200) {
       Map data = response.data;
 
-      final resultsData = data["results"];
-      if (resultsData == null || resultsData is! List) {
-        return ["0", "", "0.0", "0.0"];
-      }
+      List<dynamic> results = data["member"] ?? data["results"];
 
-      List<dynamic> results = resultsData;
+      final DateTime now = DateTime.now();
 
       for (Map<String, dynamic> json in results) {
-        if (json['produit_id'] == id &&
-            (json['date_fin_prix_vente'] >
-                    DateTime.now().toIso8601String().substring(0, 10) ||
-                json['date_fin_prix_vente'] == null) &&
-            (json['date_fin_tva'] >
-                    DateTime.now().toIso8601String().substring(0, 10) ||
-                json['date_fin_tva'] == null)) {
-          return [
-            json['id'] as String,
-            json['tva'] as String,
-            json['quantite'] as String,
-            json['prix_vente'] as String,
-          ];
+        final dateFin = json['date_fin_prix_vente'] as String?;
+        final dateTva = json['date_fin_tva'] as String?;
+
+        final bool prixOk = dateFin == null || DateTime.parse(dateFin).isAfter(now);
+        final bool tvaOk = dateTva == null || DateTime.parse(dateTva).isAfter(now);
+
+        if (json['id'] == id && prixOk && tvaOk) {
+          List<dynamic> productOverTime = [json['id'], json['tva'], json['quantite'], json['prix_vente']];
+          return productOverTime;
         }
       }
-      return ["0", "", "0.0", "0.0"];
+      return ["0", "0.0", "0.0", "0.0"];
     } else {
       throw response;
     }
@@ -311,7 +301,7 @@ class ApiService {
             quantityType = await getQuantityType(quantityTypeId);
           }
 
-          List<String> productOverTime = await getProductOverTime(
+          List<dynamic> productOverTime = await getProductOverTime(
             json['id'] as int,
           );
 
@@ -363,23 +353,16 @@ class ApiService {
         quantityType = await getQuantityType(quantityTypeId);
       }
 
-      List<String> productOverTime = productId != null
+      List<dynamic> productOverTime = productId != null
           ? await getProductOverTime(productId)
-          : ["0", "", "0.0", "0.0"];
+          : ["0", "0.0", "0.0", "0.0"];
 
       // Transformation du JSON en objet Product
       Product product = jsonToProduct(json);
       product.quantiteType = quantityType; // Mise à jour du type de quantité
-      product.prix =
-          double.tryParse(productOverTime[3]) ?? 0.0; // Mise à jour du prix
-      product.tva = productOverTime.length > 1
-          ? productOverTime[1]
-          : ''; // Mise à jour de la TVA
-      product.quantite =
-          double.tryParse(
-            productOverTime.length > 2 ? productOverTime[2] : '0.0',
-          ) ??
-          0.0; // Mise à jour de la quantité
+      product.prix = productOverTime[3]; // Mise à jour du prix
+      product.tva = productOverTime[1]; // Mise à jour de la TVA
+      product.quantite = productOverTime[2]; // Mise à jour de la quantité
       return product;
     } else {
       throw response;
