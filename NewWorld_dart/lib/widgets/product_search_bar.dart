@@ -23,7 +23,7 @@ class _ProductSearchBarState extends State<ProductSearchBar> {
   }
 
   /// Callback du gestionnaire d'état
-  onQueryChanged(String text) {
+  void onQueryChanged(String text) {
     if (text != search) {
 // Appel du callback du widget
       widget.onQueryChanged(text);
@@ -33,7 +33,7 @@ class _ProductSearchBarState extends State<ProductSearchBar> {
     }
   }
 
-  final TextEditingController _controller = new TextEditingController();
+  final TextEditingController _controller = TextEditingController();
   @override
   Widget build(BuildContext context) {
     return Container(

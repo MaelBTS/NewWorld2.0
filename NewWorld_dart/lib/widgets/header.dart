@@ -71,7 +71,10 @@ class _AppTabControllerState extends State<AppTabController>
 
   /// Méthode asynchrone chargeant l'utilisateur connecté.
   Future<User?> loadUser() async {
-    return ApiService().getUser(1);
+    final userId = UserPreferences().userId; // ou équivalent
+    if (userId == null || userId == 0)
+      {return null;} // ✅ ne pas appeler si pas connecté
+    return await ApiService().getUser(userId);
   }
 
   void _handleTabSelection() {

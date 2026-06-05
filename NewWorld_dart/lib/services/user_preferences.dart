@@ -25,6 +25,16 @@ class UserPreferences {
     _prefs = await SharedPreferences.getInstance();
   }
 
+  /// Getter pour 'id'. Retourne la valeur ou null si non défini.
+  int? get userId {
+    return _prefs?.getInt('id');
+  }
+
+  /// Setter pour 'id'. Enregistre la valeur dans SharedPreferences.
+  set userId(int? id) {
+    _prefs?.setInt('id', id!);
+  }
+
   /// Getter pour 'username'. Retourne la valeur ou null si non défini.
   String? get username {
     return _prefs?.getString('username');

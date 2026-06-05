@@ -26,21 +26,35 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _submit() async {
-    if (!_formKey.currentState!.validate()) {
-      return;
-    }
+    if (!_formKey.currentState!.validate()) return;
 
-    setState(() {
-      _isSubmitting = true;
-    });
+    setState(() => _isSubmitting = true);
 
-    final email = _emailController.text.trim();
-    final password = _passwordController.text.trim();
+    try {
+      final email = _emailController.text.trim();
+      final password = _passwordController.text.trim();
 
-    User? user = await ApiService().login(email, password);
+      User? user = await ApiService().login(email, password);
 
-    if (user != null) {
-      UserPreferences().username = email;
+      if (!mounted) return;
+
+      if (user != null) {
+        UserPreferences().userId = user.id; // ✅ stocker l'ID utilisateur
+        UserPreferences().username = email;
+        widget.onLogin?.call(); // ✅ navigation après login
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Email ou mot de passe incorrect')),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Erreur : $e')));
+    } finally {
+      if (mounted)
+        {setState(() => _isSubmitting = false);} // ✅ toujours remis à false
     }
   }
 

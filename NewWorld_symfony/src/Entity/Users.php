@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use App\Repository\UsersRepository;
 use Doctrine\ORM\Mapping as ORM;
@@ -11,11 +12,13 @@ use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Delete;
+use App\State\UserPasswordHasher; // ✅ pas App\Entity\UserPasswordHasher
 
 #[ApiResource(operations: [
+    new Get(),
     new GetCollection(),
-    new Post(),
-    new Patch(),
+    new Post(processor: UserPasswordHasher::class),
+    new Patch(processor: UserPasswordHasher::class),
     new Delete()
 ])]
 #[ORM\Entity(repositoryClass: UsersRepository::class)]

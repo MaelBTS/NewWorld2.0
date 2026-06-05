@@ -3,6 +3,7 @@ import '../models/product.dart';
 import '../models/user.dart';
 import '../models/cart.dart';
 import 'api.dart';
+import 'dart:convert';
 
 /// Classe `ApiService` gère les requêtes réseau pour récupérer des données de
 /// produits depuis une API externe.
@@ -65,21 +66,24 @@ class ApiService {
   }
 
   Future<Response> postData(String path, {Map<String, dynamic>? params}) async {
-    // Construction de l'URL complète
     String url = api.baseUrl + _normalizePath(path);
-
-    // Ajout des paramètres de requête par défaut et ceux fournis
     Map<String, dynamic> query = {};
-
-    // Ajout des paramètres optionnels
     if (params != null) {
       query.addAll(params);
     }
 
-    // Lancement de la requète
-    final response = await dio.post(url, data: query);
+    final response = await dio.post(
+      url,
+      data: jsonEncode(query),
+      options: Options(
+        headers: {
+          'Content-Type': 'application/ld+json', // ✅ ce que Symfony attend
+          'Accept': 'application/ld+json',
+        },
+      ),
+    );
 
-    if (response.statusCode == 200) {
+    if (response.statusCode == 200 || response.statusCode == 201) {
       return response;
     }
 
@@ -92,21 +96,23 @@ class ApiService {
     String path, {
     Map<String, dynamic>? params,
   }) async {
-    // Construction de l'URL complète
     String url = api.baseUrl + _normalizePath(path);
 
-    // Ajout des paramètres de requête par défaut et ceux fournis
     Map<String, dynamic> query = {};
-
-    // Ajout des paramètres optionnels
     if (params != null) {
       query.addAll(params);
     }
 
-    // Lancement de la requète
-    final response = await dio.patch(url, data: query);
+    final response = await dio.patch(
+      url,
+      data: query,
+      options: Options(
+        contentType: 'application/json', // ✅ même fix que postData
+      ),
+    );
 
-    if (response.statusCode == 200) {
+    if (response.statusCode == 200 || response.statusCode == 204) {
+      // ✅ 204 = No Content, fréquent sur PATCH
       return response;
     }
 
@@ -119,21 +125,24 @@ class ApiService {
     String path, {
     Map<String, dynamic>? params,
   }) async {
-    // Construction de l'URL complète
     String url = api.baseUrl + _normalizePath(path);
 
-    // Ajout des paramètres de requête par défaut et ceux fournis
     Map<String, dynamic> query = {};
-
-    // Ajout des paramètres optionnels
     if (params != null) {
       query.addAll(params);
     }
 
-    // Lancement de la requète
-    final response = await dio.delete(url, queryParameters: query);
+    final response = await dio.delete(
+      url,
+      data: query, // ✅ body JSON si params présents
+      queryParameters: {}, // ✅ plus de params dans l'URL
+      options: Options(
+        contentType: 'application/json', // ✅ même fix
+      ),
+    );
 
-    if (response.statusCode == 200) {
+    if (response.statusCode == 200 || response.statusCode == 204) {
+      // ✅ 204 = No Content, fréquent sur DELETE
       return response;
     }
 
@@ -239,11 +248,18 @@ class ApiService {
         final dateFin = json['date_fin_prix_vente'] as String?;
         final dateTva = json['date_fin_tva'] as String?;
 
-        final bool prixOk = dateFin == null || DateTime.parse(dateFin).isAfter(now);
-        final bool tvaOk = dateTva == null || DateTime.parse(dateTva).isAfter(now);
+        final bool prixOk =
+            dateFin == null || DateTime.parse(dateFin).isAfter(now);
+        final bool tvaOk =
+            dateTva == null || DateTime.parse(dateTva).isAfter(now);
 
         if (json['id'] == id && prixOk && tvaOk) {
-          List<dynamic> productOverTime = [json['id'], json['tva'], json['quantite'], json['prix_vente']];
+          List<dynamic> productOverTime = [
+            json['id'],
+            json['tva'],
+            json['quantite'],
+            json['prix_vente'],
+          ];
           return productOverTime;
         }
       }
@@ -394,23 +410,17 @@ class ApiService {
   }
 
   Future<User?> login(String email, String password) async {
-    Response response = await getData("/users");
+    Response response = await postData(
+      "/users", // ✅ endpoint dédié à l'authentification
+      params: {'email': email, 'password': password},
+    );
 
-    if (response.statusCode == 200) {
-      Map<String, dynamic> json = response.data;
-      User? user;
-      User tryingUser;
-      for (Map<String, dynamic> userJson in json['results'] as List<dynamic>) {
-        tryingUser = jsonToUser(userJson);
-        if (tryingUser.email == email && tryingUser.password == password) {
-          user = tryingUser;
-          break;
-        }
-      }
-      return user;
-    } else {
-      throw response;
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      return jsonToUser(
+        response.data,
+      ); // ✅ le serveur renvoie uniquement cet user
     }
+    return null;
   }
 
   /// Récupère l'identifiant du panier associé à un utilisateur.
@@ -607,7 +617,7 @@ class ApiService {
     Response responseCart = await postData(
       "/paniers",
       params: {
-        'utilisateur_id': response.data['id'] as int,
+        'user': '/api/users/${response.data['id']}',
         'statut': 'en cours',
         'date_facturation': null,
         'date_livraison': null,
@@ -615,8 +625,8 @@ class ApiService {
       },
     );
 
-    if (response.statusCode == 200 && responseCart.statusCode == 200) {
-      // Utilisateur créé avec succès
+    if ((response.statusCode == 200 || response.statusCode == 201) &&
+        (responseCart.statusCode == 200 || responseCart.statusCode == 201)) {
       return 1;
     } else {
       throw response;

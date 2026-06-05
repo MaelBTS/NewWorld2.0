@@ -16,7 +16,7 @@ class Favourites {
     _prefs = await SharedPreferences.getInstance();
   }
 
-  addToFavourites(Product product) {
+  void addToFavourites(Product product) {
     List<String> favourites = _prefs?.getStringList('Favourites') ?? [];
     final productId = product.id.toString();
     if (!favourites.contains(productId)) {
@@ -31,7 +31,7 @@ class Favourites {
     return favourites.contains(productId);
   }
 
-  removeFromFavourites(Product product) async {
+  Future<void> removeFromFavourites(Product product) async {
     List<String> favourites = _prefs?.getStringList('Favourites') ??[];
     final productId = product.id.toString();
     if (favourites != [] && favourites.contains(productId)){
@@ -40,7 +40,7 @@ class Favourites {
     }
   }
     
-  list(){
+  List<String> list(){
     List<String> favourites = _prefs?.getStringList('Favourites') ?? [];
     return favourites;
   }
