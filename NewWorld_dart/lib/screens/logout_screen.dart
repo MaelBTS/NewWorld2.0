@@ -14,15 +14,13 @@ class LogoutScreen extends StatelessWidget {
       child: Center(
         child: ElevatedButton.icon(
           onPressed: () {
-            if (onLogout != null) {
-              onLogout!();
-            } else {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Déconnexion action non définie.'),
-                ),
-              );
-            }
+            UserPreferences().isLoggedIn = false; // ✅ effacer les préférences utilisateur
+            UserPreferences().userId = null;
+            UserPreferences().username = null;
+            onLogout?.call(); // ✅ navigation après déconnexion
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Vous êtes déconnecté')),
+            );
           },
           icon: const Icon(Icons.logout),
           label: const Text('Se déconnecter'),

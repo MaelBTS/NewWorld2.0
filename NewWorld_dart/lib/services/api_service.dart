@@ -385,7 +385,7 @@ class ApiService {
     }
   }
 
-  Future<User?> getUser(int userId) async {
+  Future<User> getUser(int userId) async {
     try {
       Response response = await getData("/users/$userId");
       if (response.statusCode == 200) {
@@ -405,8 +405,7 @@ class ApiService {
         }
       }
     }
-
-    return null;
+    throw Exception('Utilisateur avec ID $userId non trouvé');
   }
 
   Future<User?> login(String email, String password) async {

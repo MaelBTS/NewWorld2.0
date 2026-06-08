@@ -135,8 +135,9 @@ class UserScreenState extends State<UserScreen> {
     return Scaffold(
       backgroundColor: UserPreferences().backgroundColor,
       appBar: AppBar(
-        backgroundColor: UserPreferences().newWorldColor,
+        backgroundColor: UserPreferences().backgroundColor,
         foregroundColor: UserPreferences().mainTextColor,
+        centerTitle: true,
         title: const Text('Profil utilisateur'),
       ),
       body: Padding(

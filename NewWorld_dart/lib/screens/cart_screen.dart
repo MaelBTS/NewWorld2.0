@@ -8,14 +8,13 @@ import 'product_detail_screen.dart';
 /// Widget CartScreen qui affiche les détails d'un produit
 class CartScreen extends StatefulWidget {
   final int cartId;
-  final VoidCallback onGoBack;
-  const CartScreen({super.key, required this.cartId, required this.onGoBack});
+  const CartScreen({super.key, required this.cartId});
   @override
   State<CartScreen> createState() => _CartScreenState();
 }
 
 class _CartScreenState extends State<CartScreen> {
-  String appBarTitle = "Chargement...";
+  String appBarTitle = "panier";
   late Future<Cart?> cart;
   @override
   void initState() {
@@ -29,7 +28,8 @@ class _CartScreenState extends State<CartScreen> {
       backgroundColor: UserPreferences().backgroundColor,
       appBar: AppBar(
         title: Text(appBarTitle),
-        backgroundColor: UserPreferences().newWorldColor,
+        centerTitle: true,
+        backgroundColor: UserPreferences().backgroundColor,
         foregroundColor: UserPreferences().mainTextColor,
       ),
       body: FutureBuilder<Cart?>(

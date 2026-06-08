@@ -4,10 +4,11 @@ import '../models/product.dart';
 import '../models/user.dart';
 import '../screens/product_screen.dart';
 import '../services/user_preferences.dart';
-import 'package:newworld/models/cart.dart';
 import '../screens/login_screen.dart';
 import '../screens/logout_screen.dart';
 import '../screens/register_screen.dart';
+import '../screens/cart_screen.dart';
+import '../screens/user_gestion_screen.dart';
 
 /// Contrôleur permettant l'affichage des onglets: Accueil, Panier,
 /// Utilisateur et Déconnexion.
@@ -15,12 +16,9 @@ class AppTabController extends StatefulWidget {
   /// Liste des produits populaires chargés à l'initialisation de l'application
   final List<Product>? _products;
 
-
   /// Constructeur de notre widget
-  const AppTabController({
-    super.key,
-    required List<Product>? products,
-  }) : _products = products;
+  const AppTabController({super.key, required List<Product>? products})
+    : _products = products;
 
   /// Surcharge de la gestion d'état
   @override
@@ -30,8 +28,8 @@ class AppTabController extends StatefulWidget {
 class _AppTabControllerState extends State<AppTabController>
     with SingleTickerProviderStateMixin {
   TabController? _tabController;
-  late Future<List<Product>?> _productsFuture;
-  late Future<User?> _userFuture;
+  late int _cartFuture;
+  late User _userFuture;
 
   @override
   void initState() {
@@ -43,44 +41,55 @@ class _AppTabControllerState extends State<AppTabController>
     }
     // Ajout de l'écouteur
     _tabController!.addListener(_handleTabSelection);
-    // Initialisation des chargements par défaut
-    _productsFuture = loadProducts();
-    _userFuture = loadUser();
+    setFuture();
+  }
+
+  Future<void> setFuture() async {
+    User user = await loadUser();
+    setState(() {
+      // ← notifie Flutter que les données sont prêtes
+      _userFuture = user;
+    });
+    int cartId = await loadCartId();
+    setState(() {
+      // ← notifie Flutter que les données sont prêtes
+      _cartFuture = cartId;
+    });
   }
 
   /// Méthode asynchrone chargeant la liste de produits du panier.
-  Future<List<Product>?> loadProducts() async {
+  Future<int> loadCartId() async {
     switch (_tabController!.index) {
       case 1:
         // Récupérer le panier de l'utilisateur
         int cartId =
-            await ApiService().getCartIdByUserId(1) ??
+            await ApiService().getCartIdByUserId(_userFuture.id) ??
             -1; // Supposons que l'utilisateur a l'ID 1
         if (cartId == -1) {
-          return [];
+          throw Exception('Panier introuvable pour l\'utilisateur');
         }
-        Cart? cart = await ApiService().getCart(cartId);
-        return cart?.produits;
+        return cartId;
       default:
-        return [];
+        return -1;
     }
   }
 
   /// Méthode asynchrone chargeant l'utilisateur connecté.
-  Future<User?> loadUser() async {
+  Future<User> loadUser() async {
     final userId = UserPreferences().userId; // ou équivalent
-    if (userId == null || userId == 0)
-      {return null;} // ✅ ne pas appeler si pas connecté
+    if (userId == null || userId == 0) {
+      throw Exception('Utilisateur non connecté');
+    } // ✅ ne pas appeler si pas connecté
     return await ApiService().getUser(userId);
   }
 
-  void _handleTabSelection() {
+  Future<void> _handleTabSelection() async {
     if (_tabController!.indexIsChanging) {
-      setState(() {
+      setState(() async {
         if (_tabController!.index == 1) {
-          _productsFuture = loadProducts();
+          _cartFuture = await loadCartId();
         } else if (_tabController!.index == 2) {
-          _userFuture = loadUser();
+          _userFuture = await loadUser();
         }
       });
     }
@@ -120,81 +129,28 @@ class _AppTabControllerState extends State<AppTabController>
                   color: UserPreferences().backgroundColor,
                   child: ProductListScreen(products: widget._products!),
                 ),
-                FutureBuilder<List<Product>?>(
-                  future: _productsFuture,
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return Container(
-                        color: UserPreferences().backgroundColor,
-                        child: Center(
-                          child: CircularProgressIndicator(
-                            color: UserPreferences().newWorldColor,
-                          ),
-                        ),
-                      );
-                    } else if (snapshot.hasError) {
-                      return Center(child: Text('Erreur: ${snapshot.error}'));
-                    } else {
-                      return ProductListScreen(
-                        products: snapshot.data ?? [],
-                        titleMode: "Panier",
-                      );
-                    }
-                  },
+                Container(
+                  color: UserPreferences().backgroundColor,
+                  child: CartScreen(
+                    cartId: _cartFuture,
+                  ), // ✅ passer l'ID du panier
                 ),
-                FutureBuilder<User?>(
-                  future: _userFuture,
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return Container(
-                        color: UserPreferences().backgroundColor,
-                        child: Center(
-                          child: CircularProgressIndicator(
-                            color: UserPreferences().newWorldColor,
-                          ),
-                        ),
-                      );
-                    } else if (snapshot.hasError) {
-                      return Center(child: Text('Erreur: ${snapshot.error}'));
-                    } else if (snapshot.hasData) {
-                      final user = snapshot.data!;
-                      return Container(
-                        color: UserPreferences().backgroundColor,
-                        padding: const EdgeInsets.all(24),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Utilisateur connecté',
-                              style: TextStyle(
-                                fontSize: 20,
-                                color: UserPreferences().mainTextColor,
-                              ),
-                            ),
-                            const SizedBox(height: 16),
-                            Text(
-                              'Email: ${user.email}',
-                              style: TextStyle(
-                                color: UserPreferences().secondaryTextColor,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              'Rôles: ${user.roles.join(', ')}',
-                              style: TextStyle(
-                                color: UserPreferences().secondaryTextColor,
-                              ),
-                            ),
-                          ],
-                        ),
-                      );
-                    } else {
-                      return Center(child: Text('Aucun utilisateur trouvé'));
-                    }
-                  },
+                Container(
+                  color: UserPreferences().backgroundColor,
+                  child: UserScreen(
+                    user: _userFuture,
+                  ), // ✅ passer l'utilisateur
                 ),
-                LogoutScreen(),
+                Container(
+                  color: UserPreferences().backgroundColor,
+                  child: LogoutScreen(
+                    onLogout: () {
+                      setState(() {
+                        _tabController = TabController(length: 3, vsync: this);
+                      });
+                    },
+                  ),
+                ),
               ]
             : [
                 Container(
