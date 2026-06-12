@@ -71,7 +71,7 @@ class _CartScreenState extends State<CartScreen> {
                                     color: UserPreferences().mainTextColor),
                           ),
                           Text(
-                            'payé le ${cart.date_facturation}',
+                            'payé le ${cart.date_facturation ?? "non payé"}',
                             style: Theme.of(context)
                                 .textTheme
                                 .bodyMedium
@@ -79,7 +79,7 @@ class _CartScreenState extends State<CartScreen> {
                                     color: UserPreferences().mainTextColor),
                           ), // Affiche le slogan du produit
                           Text(
-                            'livré le ${cart.date_livraison}',
+                            'livré le ${cart.date_livraison ?? "non livré"}',
                             style: Theme.of(context)
                                 .textTheme
                                 .bodyMedium

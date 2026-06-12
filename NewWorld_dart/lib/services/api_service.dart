@@ -65,6 +65,28 @@ class ApiService {
     );
   }
 
+  Future<Response?> getPanierProduitData(String path, {Map<String, dynamic>? params}) async {
+    // Construction de l'URL complète
+    String url = api.baseUrl + _normalizePath(path);
+
+    // Ajout des paramètres de requête par défaut et ceux fournis
+    Map<String, dynamic> query = {};
+
+    // Ajout des paramètres optionnels
+    if (params != null) {
+      query.addAll(params);
+    }
+
+    // Lancement de la requète
+    final response = await dio.get(url, queryParameters: query);
+
+    if (response.statusCode == 200) {
+      return response;
+    }
+
+    return null;
+  }
+
   Future<Response> postData(String path, {Map<String, dynamic>? params}) async {
     String url = api.baseUrl + _normalizePath(path);
     Map<String, dynamic> query = {};
@@ -431,7 +453,7 @@ class ApiService {
 
     if (response.statusCode == 200) {
       Map<String, dynamic> data = response.data;
-      List<dynamic> results = data['results'] as List<dynamic>? ?? [];
+      List<dynamic> results = data['member'] as List<dynamic>? ?? [];
       if (results.isNotEmpty) {
         return results.first['id'] as int?;
       }
@@ -445,19 +467,19 @@ class ApiService {
     Response response = await getData("/paniers/$cartId");
 
     if (response.statusCode == 200) {
-      Response liaison = await getData("/produit_paniers/?panier_id=$cartId");
+      Response? liaison = await getPanierProduitData("/produit_paniers/?panier_id=$cartId");
       Map<String, dynamic> json = response.data;
-      if (liaison.statusCode == 200) {
+      if (liaison != null && liaison.statusCode == 200) {
         json['products'] = liaison.data['results'];
-      } else {
-        throw liaison;
+      } else if (liaison == null) {
+        json['products'] = [];
       }
       List<Product> products = [];
       for (Map<String, dynamic> product in json['products'] as List<dynamic>) {
         Product? p = await getProduct(product['id'] as int);
         if (p != null) products.add(p);
       }
-      return jsonToCart(json, products);
+      return await jsonToCart(json, products);
     } else {
       throw response;
     }
@@ -486,13 +508,14 @@ class ApiService {
     );
   }
 
-  Cart jsonToCart(Map<String, dynamic> json, List<Product> products) {
+  Future<Cart> jsonToCart(Map<String, dynamic> json, List<Product> products) async {
+    User utilisateur = await getUser(int.parse(json['user'].split('/').last));
     Cart cart = Cart(
       id: json['id'] as int,
-      utilisateur: getUser(json['utilisateur_id'] as int) as User,
+      utilisateur: utilisateur,
       statut: json['statut'] as String,
-      date_facturation: DateTime.parse(json['date_facturation'] as String),
-      date_livraison: DateTime.parse(json['date_livraison'] as String),
+      date_facturation: json['date_facturation'] != null ? DateTime.parse(json['date_facturation'] as String) : null,
+      date_livraison: json['date_livraison'] != null ? DateTime.parse(json['date_livraison'] as String) : null,
       commentaire: json['commentaire'] as String,
       produits: products,
     );
@@ -503,13 +526,13 @@ class ApiService {
     Response response = await postData(
       "/produit_paniers",
       params: {
-        'panier_id': cartId,
-        'product_id': productId,
+        'panier_id': '/api/paniers/$cartId',
+        'product_id': '/api/produits/$productId',
         'quantity': quantity,
       },
     );
 
-    if (response.statusCode == 200) {
+    if (response.statusCode == 200 || response.statusCode == 201) {
       // Produit ajouté au panier avec succès
       return 1;
     } else {
@@ -522,7 +545,7 @@ class ApiService {
       "/produit_paniers/?panier_id=$cartId&product_id=$productId",
     );
 
-    if (response.statusCode == 200) {
+    if (response.statusCode == 200 || response.statusCode == 204) {
       // Produit retiré du panier avec succès
       return 1;
     } else {
@@ -546,7 +569,6 @@ class ApiService {
 
   Future<int> payCart(Cart cart) async {
     for (Product product in cart.produits) {
-      removeFromCart(cart.id, product.id);
       Response responseReduceQuantity = await getData(
         "/produit_paniers/?panier_id=${cart.id}&product_id=${product.id}",
       );
@@ -559,6 +581,7 @@ class ApiService {
       );
       if (response.statusCode == 200) {
         // Quantité du produit mise à jour avec succès
+        removeFromCart(cart.id, product.id);
       } else {
         throw response;
       }
@@ -568,24 +591,15 @@ class ApiService {
       params: {
         'statut': 'payé',
         'date_facturation': DateTime.now().toIso8601String().substring(0, 10),
+        'date_livraison': DateTime.now().toIso8601String().substring(0, 10),
       },
     );
 
     if (response.statusCode == 200) {
       // Panier validé avec succès
-      return 1;
     } else {
       throw response;
     }
-  }
-
-  Future<int> deliverCart(Cart cart) async {
-    Response response = await patchData(
-      "/paniers/${cart.id}",
-      params: {
-        'date_livraison': DateTime.now().toIso8601String().substring(0, 10),
-      },
-    );
 
     Response responseArchive = await postData(
       "/archives/",
@@ -597,11 +611,11 @@ class ApiService {
       },
     );
 
-    if (responseArchive.statusCode == 200 && response.statusCode == 200) {
-      // Panier livré avec succès
+    if (responseArchive.statusCode == 200) {
+      // Panier archivé avec succès
       return 1;
     } else {
-      throw response;
+      throw responseArchive;
     }
   }
 

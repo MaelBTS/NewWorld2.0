@@ -78,7 +78,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                           const SizedBox(height: 8),
                           ElevatedButton(
                               onPressed: () async{
-                                int cartId = await ApiService().getCartIdByUserId(1) ?? -1;
+                                int cartId = await ApiService().getCartIdByUserId(UserPreferences().userId ?? -1) ?? -1;
                                   if (cartId != -1) {
                                     await ApiService().addToCart(cartId, product.id, 1);
                                   } else {

@@ -67,13 +67,6 @@ class UserScreenState extends State<UserScreen> {
                     return null;
                   },
                 ),
-                const SizedBox(height: 12),
-                TextFormField(
-                  controller: rolesController,
-                  decoration: const InputDecoration(
-                    labelText: 'Rôles (séparés par des virgules)',
-                  ),
-                ),
               ],
             ),
           ),
@@ -154,7 +147,7 @@ class UserScreenState extends State<UserScreen> {
                   style: TextStyle(color: UserPreferences().mainTextColor),
                 ),
                 subtitle: Text(
-                  'ID : ${user.id}',
+                  'email : ${user.email}',
                   style: TextStyle(color: UserPreferences().secondaryTextColor),
                 ),
                 trailing: IconButton(
@@ -179,27 +172,20 @@ class UserScreenState extends State<UserScreen> {
                 ),
               ),
             ),
-            const SizedBox(height: 12),
-            Card(
-              color: Colors.white,
-              child: ListTile(
-                leading: const Icon(Icons.admin_panel_settings),
-                title: const Text('Rôles'),
-                subtitle: Text(
-                  user.roles.join(', '),
-                  style: TextStyle(color: UserPreferences().secondaryTextColor),
-                ),
-                trailing: IconButton(
-                  icon: const Icon(Icons.edit),
-                  onPressed: _openEditUserDialog,
-                ),
-              ),
-            ),
             const SizedBox(height: 18),
             ElevatedButton.icon(
               onPressed: _openEditUserDialog,
               icon: const Icon(Icons.edit),
               label: const Text('Modifier mes informations'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: UserPreferences().newWorldColor,
+                foregroundColor: UserPreferences().mainTextColor,
+              ),
+            ),
+            ElevatedButton.icon(
+              onPressed: () => ApiService().deleteUser(user),
+              icon: const Icon(Icons.delete),
+              label: const Text('supprimer mon compte'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: UserPreferences().newWorldColor,
                 foregroundColor: UserPreferences().mainTextColor,

@@ -28,8 +28,8 @@ class AppTabController extends StatefulWidget {
 class _AppTabControllerState extends State<AppTabController>
     with SingleTickerProviderStateMixin {
   TabController? _tabController;
-  late int _cartFuture;
-  late User _userFuture;
+  int? _cartFuture;
+  User? _userFuture;
 
   @override
   void initState() {
@@ -57,21 +57,31 @@ class _AppTabControllerState extends State<AppTabController>
     });
   }
 
+  void _onLoginSuccess() {
+    setState(() {
+      _tabController?.dispose();
+      _tabController = TabController(length: 4, vsync: this);
+      _tabController!.addListener(_handleTabSelection);
+    });
+    setFuture();
+  }
+
+  void _onLogoutSuccess() {
+    setState(() {
+      _tabController?.dispose();
+      _tabController = TabController(length: 3, vsync: this);
+      _tabController!.addListener(_handleTabSelection);
+    });
+    setFuture();
+  }
+
   /// Méthode asynchrone chargeant la liste de produits du panier.
   Future<int> loadCartId() async {
-    switch (_tabController!.index) {
-      case 1:
-        // Récupérer le panier de l'utilisateur
-        int cartId =
-            await ApiService().getCartIdByUserId(_userFuture.id) ??
-            -1; // Supposons que l'utilisateur a l'ID 1
-        if (cartId == -1) {
-          throw Exception('Panier introuvable pour l\'utilisateur');
-        }
-        return cartId;
-      default:
-        return -1;
+    final cartId = await ApiService().getCartIdByUserId(_userFuture!.id) ?? -1;
+    if (cartId == -1) {
+      throw Exception('Panier introuvable pour l\'utilisateur');
     }
+    return cartId;
   }
 
   /// Méthode asynchrone chargeant l'utilisateur connecté.
@@ -85,13 +95,13 @@ class _AppTabControllerState extends State<AppTabController>
 
   Future<void> _handleTabSelection() async {
     if (_tabController!.indexIsChanging) {
-      setState(() async {
-        if (_tabController!.index == 1) {
-          _cartFuture = await loadCartId();
-        } else if (_tabController!.index == 2) {
-          _userFuture = await loadUser();
-        }
-      });
+      if (_tabController!.index == 1 && _cartFuture == null) {
+        final cartId = await loadCartId();
+        setState(() => _cartFuture = cartId);
+      } else if (_tabController!.index == 2 && _userFuture == null) {
+        final user = await loadUser();
+        setState(() => _userFuture = user);
+      }
     }
   }
 
@@ -131,25 +141,19 @@ class _AppTabControllerState extends State<AppTabController>
                 ),
                 Container(
                   color: UserPreferences().backgroundColor,
-                  child: CartScreen(
-                    cartId: _cartFuture,
-                  ), // ✅ passer l'ID du panier
+                  child: _cartFuture == null
+                      ? const Center(child: CircularProgressIndicator())
+                      : CartScreen(cartId: _cartFuture!),
                 ),
                 Container(
                   color: UserPreferences().backgroundColor,
-                  child: UserScreen(
-                    user: _userFuture,
-                  ), // ✅ passer l'utilisateur
+                  child: _userFuture == null
+                      ? const Center(child: CircularProgressIndicator())
+                      : UserScreen(user: _userFuture!),
                 ),
                 Container(
                   color: UserPreferences().backgroundColor,
-                  child: LogoutScreen(
-                    onLogout: () {
-                      setState(() {
-                        _tabController = TabController(length: 3, vsync: this);
-                      });
-                    },
-                  ),
+                  child: LogoutScreen(onLogout: _onLogoutSuccess),
                 ),
               ]
             : [
@@ -159,7 +163,7 @@ class _AppTabControllerState extends State<AppTabController>
                 ),
                 Container(
                   color: UserPreferences().backgroundColor,
-                  child: LoginScreen(),
+                  child: LoginScreen(onLogin: _onLoginSuccess),
                 ),
                 Container(
                   color: UserPreferences().backgroundColor,

@@ -28,8 +28,8 @@ class Cart {
   final int id;
   final User utilisateur;
   final String statut;
-  final DateTime date_facturation;
-  final DateTime date_livraison;
+  final DateTime? date_facturation;
+  final DateTime? date_livraison;
   final String commentaire;
   List<Product> produits;
   late double totalPrice;
