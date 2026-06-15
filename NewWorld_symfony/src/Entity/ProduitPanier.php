@@ -4,14 +4,20 @@ namespace App\Entity;
 
 use App\Repository\ProduitPanierRepository;
 use Doctrine\ORM\Mapping as ORM;
+use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
+use ApiPlatform\Doctrine\Orm\Filter\ExistsFilter;
+use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Delete;
 
+#[ApiFilter(SearchFilter::class, properties: ['panier' => 'exact', 'produit' => 'exact'])]
 #[ApiResource(operations: [
     new Get(),
+    new GetCollection(),
     new Post(),
     new Patch(),
     new Delete()

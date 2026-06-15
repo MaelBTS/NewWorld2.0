@@ -25,7 +25,7 @@ class UserScreenState extends State<UserScreen> {
 
   Future<void> _openEditUserDialog() async {
     final emailController = TextEditingController(text: user.email);
-    final passwordController = TextEditingController(text: user.password);
+    final passwordController = TextEditingController(text: '');
     final rolesController = TextEditingController(text: user.roles.join(', '));
 
     await showDialog<void>(
@@ -56,12 +56,12 @@ class UserScreenState extends State<UserScreen> {
                 TextFormField(
                   controller: passwordController,
                   obscureText: true,
-                  decoration: const InputDecoration(labelText: 'Mot de passe'),
+                  decoration: const InputDecoration(
+                    labelText: 'Nouveau mot de passe',
+                    hintText: 'Laisser vide pour ne pas changer',
+                  ),
                   validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Veuillez saisir un mot de passe';
-                    }
-                    if (value.length < 6) {
+                    if (value != null && value.isNotEmpty && value.length < 6) {
                       return 'Minimum 6 caractères';
                     }
                     return null;
@@ -93,7 +93,7 @@ class UserScreenState extends State<UserScreen> {
                     user = User(
                       id: user.id,
                       email: email,
-                      password: password,
+                      password: user.password,
                       roles: roles.isNotEmpty ? roles : user.roles,
                     );
                   });
@@ -183,7 +183,41 @@ class UserScreenState extends State<UserScreen> {
               ),
             ),
             ElevatedButton.icon(
-              onPressed: () => ApiService().deleteUser(user),
+              onPressed: () async {
+                final confirm = await showDialog<bool>(
+                  context: context,
+                  builder: (ctx) => AlertDialog(
+                    title: const Text('Supprimer le compte'),
+                    content: const Text('Êtes-vous sûr de vouloir supprimer votre compte ? Cette action est irréversible.'),
+                    actions: [
+                      TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Annuler')),
+                      ElevatedButton(
+                        onPressed: () => Navigator.pop(ctx, true),
+                        style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                        child: const Text('Supprimer', style: TextStyle(color: Colors.white)),
+                      ),
+                    ],
+                  ),
+                );
+                if (confirm != true) return;
+                try {
+                  await ApiService().deleteUser(user);
+                  if (context.mounted) {
+                    UserPreferences().isLoggedIn = false;
+                    UserPreferences().userId = null;
+                    UserPreferences().username = null;
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Compte supprimé')),
+                    );
+                  }
+                } catch (e) {
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Erreur: $e')),
+                    );
+                  }
+                }
+              },
               icon: const Icon(Icons.delete),
               label: const Text('supprimer mon compte'),
               style: ElevatedButton.styleFrom(

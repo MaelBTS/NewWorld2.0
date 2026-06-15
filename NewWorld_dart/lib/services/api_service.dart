@@ -129,7 +129,8 @@ class ApiService {
       url,
       data: query,
       options: Options(
-        contentType: 'application/json', // ✅ même fix que postData
+        contentType: 'application/merge-patch+json',
+        headers: {'Accept': 'application/ld+json'},
       ),
     );
 
@@ -275,7 +276,7 @@ class ApiService {
         final bool tvaOk =
             dateTva == null || DateTime.parse(dateTva).isAfter(now);
 
-        if (json['id'] == id && prixOk && tvaOk) {
+        if (json['produit'] == '/api/produits/$id' && prixOk && tvaOk) {
           List<dynamic> productOverTime = [
             json['id'],
             json['tva'],
@@ -448,12 +449,13 @@ class ApiService {
   Future<int?> getCartIdByUserId(int userId) async {
     Response response = await getData(
       "/paniers/",
-      params: {'utilisateur_id': userId},
+      params: {'user': '/api/users/$userId'},
     );
 
     if (response.statusCode == 200) {
       Map<String, dynamic> data = response.data;
-      List<dynamic> results = data['member'] as List<dynamic>? ?? [];
+      final member = data['member'] ?? data['hydra:member'] ?? [];
+      List<dynamic> results = member as List<dynamic>? ?? [];
       if (results.isNotEmpty) {
         return results.first['id'] as int?;
       }
@@ -467,17 +469,26 @@ class ApiService {
     Response response = await getData("/paniers/$cartId");
 
     if (response.statusCode == 200) {
-      Response? liaison = await getPanierProduitData("/produit_paniers/?panier_id=$cartId");
+      Response? liaison = await getPanierProduitData("/produit_paniers/", params: {'panier': '/api/paniers/$cartId'});
       Map<String, dynamic> json = response.data;
-      if (liaison != null && liaison.statusCode == 200) {
-        json['products'] = liaison.data['results'];
-      } else if (liaison == null) {
-        json['products'] = [];
-      }
       List<Product> products = [];
-      for (Map<String, dynamic> product in json['products'] as List<dynamic>) {
-        Product? p = await getProduct(product['id'] as int);
-        if (p != null) products.add(p);
+      if (liaison != null && liaison.statusCode == 200) {
+        Map<String, dynamic> liaisonData = liaison.data;
+        final member = liaisonData['member'] ?? liaisonData['hydra:member'] ?? [];
+        for (Map<String, dynamic> pp in member as List<dynamic>) {
+          final produitIri = pp['produit'] as String?;
+          if (produitIri != null) {
+            final productId = int.tryParse(produitIri.split('/').last);
+            if (productId != null) {
+              Product? p = await getProduct(productId);
+              if (p != null) {
+                p.liaisonId = pp['id'] as int?;
+                p.panierQuantite = (pp['quantite'] as num?)?.toDouble() ?? 0;
+                products.add(p);
+              }
+            }
+          }
+        }
       }
       return await jsonToCart(json, products);
     } else {
@@ -499,12 +510,12 @@ class ApiService {
     return User(
       id: json['id'] as int,
       email: json['email'] as String,
-      password: json['password']?.toString() ?? '', // ✅ null-safe
+      password: '', // Ne pas stocker le hash renvoyé par l'API
       roles:
           (json['roles'] as List<dynamic>?)
               ?.map((e) => e.toString())
               .toList() ??
-          [], // ✅ cast correct
+          [],
     );
   }
 
@@ -523,30 +534,63 @@ class ApiService {
   }
 
   Future<int> addToCart(int cartId, int productId, double quantity) async {
+    await patchData(
+      "/paniers/$cartId",
+      params: {'statut': 'en cours'},
+    );
+
+    final existingPpId = await _findProduitPanierId(cartId, productId);
+    if (existingPpId != null) {
+      final existing = await getData("/produit_paniers", params: {
+        'panier': '/api/paniers/$cartId',
+        'produit': '/api/produits/$productId',
+      });
+      final member = ((existing.data['member'] ?? existing.data['hydra:member'] ?? []) as List);
+      double existingQty = 0;
+      if (member.isNotEmpty) {
+        existingQty = (member.first['quantite'] as num?)?.toDouble() ?? 0;
+      }
+      return await updateCart(cartId, productId, existingQty + quantity);
+    }
+
     Response response = await postData(
       "/produit_paniers",
       params: {
-        'panier_id': '/api/paniers/$cartId',
-        'product_id': '/api/produits/$productId',
-        'quantity': quantity,
+        'panier': '/api/paniers/$cartId',
+        'produit': '/api/produits/$productId',
+        'quantite': quantity,
       },
     );
 
     if (response.statusCode == 200 || response.statusCode == 201) {
-      // Produit ajouté au panier avec succès
       return 1;
     } else {
       throw response;
     }
   }
 
+  Future<int?> _findProduitPanierId(int cartId, int productId) async {
+    final res = await getData("/produit_paniers", params: {
+      'panier': '/api/paniers/$cartId',
+      'produit': '/api/produits/$productId',
+    });
+    if (res.statusCode == 200) {
+      final data = res.data;
+      final member = data['member'] ?? data['hydra:member'] ?? [];
+      if ((member as List).isNotEmpty) {
+        return member.first['id'] as int?;
+      }
+    }
+    return null;
+  }
+
   Future<int> removeFromCart(int cartId, int productId) async {
-    Response response = await deleteData(
-      "/produit_paniers/?panier_id=$cartId&product_id=$productId",
-    );
+    final ppId = await _findProduitPanierId(cartId, productId);
+    if (ppId == null) return 0;
+
+    Response response = await deleteData("/produit_paniers/$ppId");
 
     if (response.statusCode == 200 || response.statusCode == 204) {
-      // Produit retiré du panier avec succès
       return 1;
     } else {
       throw response;
@@ -554,13 +598,15 @@ class ApiService {
   }
 
   Future<int> updateCart(int cartId, int productId, double quantity) async {
+    final ppId = await _findProduitPanierId(cartId, productId);
+    if (ppId == null) return 0;
+
     Response response = await patchData(
-      "/produit_paniers/?panier_id=$cartId&product_id=$productId",
-      params: {'quantity': quantity},
+      "/produit_paniers/$ppId",
+      params: {'quantite': quantity},
     );
 
     if (response.statusCode == 200) {
-      // Quantité du produit mise à jour avec succès
       return 1;
     } else {
       throw response;
@@ -568,55 +614,73 @@ class ApiService {
   }
 
   Future<int> payCart(Cart cart) async {
-    for (Product product in cart.produits) {
-      Response responseReduceQuantity = await getData(
-        "/produit_paniers/?panier_id=${cart.id}&product_id=${product.id}",
-      );
-      Map<String, dynamic> data = responseReduceQuantity.data;
-      int productQuantite = data['quantite'] as int;
+    final now = DateTime.now();
 
-      Response response = await patchData(
-        "/produit_sur_le_temps/${product.idProduitSurLeTemps}",
-        params: {'quantite': product.quantite - productQuantite},
+    final res = await getData("/produit_paniers", params: {
+      'panier': '/api/paniers/${cart.id}',
+    });
+    if (res.statusCode != 200) throw Exception('Impossible de récupérer le panier');
+    final member = (res.data['member'] ?? res.data['hydra:member'] ?? []) as List;
+
+    final pstRes = await getData("/produit_sur_le_temps");
+    if (pstRes.statusCode != 200) throw Exception('Impossible de récupérer les stocks');
+    final pstList = (pstRes.data['member'] ?? pstRes.data['hydra:member'] ?? []) as List;
+
+    for (var pp in member) {
+      final produitIri = pp['produit'] as String?;
+      final quantiteDansPanier = (pp['quantite'] as num?)?.toDouble() ?? 0;
+      if (produitIri == null) continue;
+
+      final productId = int.tryParse(produitIri.split('/').last);
+      if (productId == null) continue;
+
+      Map<String, dynamic>? pstEntry;
+      for (var pst in pstList) {
+        if (pst is Map<String, dynamic> && pst['produit'] == '/api/produits/$productId') {
+          final dateFin = pst['date_fin_prix_vente'] as String?;
+          if (dateFin == null || DateTime.parse(dateFin).isAfter(now)) {
+            pstEntry = pst;
+            break;
+          }
+        }
+      }
+      if (pstEntry == null) continue;
+
+      final pstId = pstEntry['id'] as int;
+      final stockActuel = (pstEntry['quantite'] as num).toDouble();
+
+      await patchData(
+        "/produit_sur_le_temps/$pstId",
+        params: {'quantite': stockActuel - quantiteDansPanier},
       );
-      if (response.statusCode == 200) {
-        // Quantité du produit mise à jour avec succès
-        removeFromCart(cart.id, product.id);
-      } else {
-        throw response;
+
+      final ppId = pp['id'] as int?;
+      if (ppId != null) {
+        await deleteData("/produit_paniers/$ppId");
       }
     }
-    Response response = await patchData(
+
+    final nowStr = now.toIso8601String();
+    await patchData(
       "/paniers/${cart.id}",
       params: {
         'statut': 'payé',
-        'date_facturation': DateTime.now().toIso8601String().substring(0, 10),
-        'date_livraison': DateTime.now().toIso8601String().substring(0, 10),
+        'date_facturation': nowStr,
+        'date_livraison': nowStr,
       },
     );
 
-    if (response.statusCode == 200) {
-      // Panier validé avec succès
-    } else {
-      throw response;
-    }
-
-    Response responseArchive = await postData(
-      "/archives/",
+    await postData(
+      "/archives",
       params: {
         'type': 'cart',
         'ancien_id': cart.id,
         'data': cart.toString(),
-        'date_archivage': DateTime.now().toIso8601String().substring(0, 10),
+        'date_archivage': nowStr.substring(0, 10),
       },
     );
 
-    if (responseArchive.statusCode == 200) {
-      // Panier archivé avec succès
-      return 1;
-    } else {
-      throw responseArchive;
-    }
+    return 1;
   }
 
   Future<int> postUser(
@@ -653,13 +717,18 @@ class ApiService {
     String password,
     List<String> roles,
   ) async {
-    Response response = await patchData(
-      "/users/$userId",
-      params: {'email': email, 'password': password, 'roles': roles},
-    );
+    Map<String, dynamic> params = {
+      'email': email,
+      'roles': roles,
+    };
+    // N'envoyer le mot de passe que s'il a été modifié
+    if (password.isNotEmpty) {
+      params['password'] = password;
+    }
+
+    Response response = await patchData("/users/$userId", params: params);
 
     if (response.statusCode == 200) {
-      // Utilisateur mis à jour avec succès
       return 1;
     } else {
       throw response;
@@ -667,10 +736,9 @@ class ApiService {
   }
 
   Future<int> deleteUser(User user) async {
-    Response response = await deleteData("/users/${user.id}");
-
-    Response responseArchive = await postData(
-      "/archives/",
+    await deleteData("/users/${user.id}");
+    await postData(
+      "/archives",
       params: {
         'type': 'user',
         'ancien_id': user.id,
@@ -678,12 +746,6 @@ class ApiService {
         'date_archivage': DateTime.now().toIso8601String().substring(0, 10),
       },
     );
-
-    if (response.statusCode == 200 && responseArchive.statusCode == 200) {
-      // Utilisateur supprimé avec succès
-      return 1;
-    } else {
-      throw response;
-    }
+    return 1;
   }
 }

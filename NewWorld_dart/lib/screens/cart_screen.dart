@@ -15,11 +15,11 @@ class CartScreen extends StatefulWidget {
 
 class _CartScreenState extends State<CartScreen> {
   String appBarTitle = "panier";
-  late Future<Cart?> cart;
+  late Future<Cart?> _cartFuture;
   @override
   void initState() {
     super.initState();
-    cart = ApiService().getCart(widget.cartId);
+    _cartFuture = ApiService().getCart(widget.cartId);
   }
 
   @override
@@ -33,7 +33,7 @@ class _CartScreenState extends State<CartScreen> {
         foregroundColor: UserPreferences().mainTextColor,
       ),
       body: FutureBuilder<Cart?>(
-        future: cart,
+        future: _cartFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(
@@ -77,7 +77,7 @@ class _CartScreenState extends State<CartScreen> {
                                 .bodyMedium
                                 ?.copyWith(
                                     color: UserPreferences().mainTextColor),
-                          ), // Affiche le slogan du produit
+                          ),
                           Text(
                             'livré le ${cart.date_livraison ?? "non livré"}',
                             style: Theme.of(context)
@@ -85,44 +85,95 @@ class _CartScreenState extends State<CartScreen> {
                                 .bodyMedium
                                 ?.copyWith(
                                     color: UserPreferences().mainTextColor),
-                          ), // Affiche la date de sortie
+                          ),
+                          if (cart.commentaire.isNotEmpty)
+                            Text(
+                              cart.commentaire,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodyMedium
+                                  ?.copyWith(
+                                      color: UserPreferences().mainTextColor),
+                            ),
+                          const SizedBox(height: 8),
+                          if (cart.statut != 'payé') ...[
+                            ElevatedButton(
+                              onPressed: () async {
+                                final confirm = await showDialog<bool>(
+                                  context: context,
+                                  builder: (ctx) => AlertDialog(
+                                    title: const Text('Confirmer le paiement'),
+                                    content: Text('Total: ${cart.totalPrice.toStringAsFixed(2)}€\nConfirmer le paiement ?'),
+                                    actions: [
+                                      TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Annuler')),
+                                      ElevatedButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Payer')),
+                                    ],
+                                  ),
+                                );
+                                if (confirm != true) return;
+                                try {
+                                  await ApiService().payCart(cart);
+                                  if (context.mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(content: Text('Paiement effectué')),
+                                    );
+                                    setState(() => _cartFuture = ApiService().getCart(widget.cartId));
+                                  }
+                                } catch (e) {
+                                  if (context.mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(content: Text('Erreur de paiement: $e')),
+                                    );
+                                  }
+                                }
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: UserPreferences().newWorldColor,
+                                foregroundColor: UserPreferences().mainTextColor,
+                              ),
+                              child: const Text('Payer'),
+                            ),
+                            const SizedBox(height: 12),
+                          ],
                           Text(
-                            cart.commentaire,
+                            'Total: ${cart.totalPrice.toStringAsFixed(2)}€',
                             style: Theme.of(context)
                                 .textTheme
-                                .bodyMedium
+                                .titleMedium
                                 ?.copyWith(
+                                    fontWeight: FontWeight.bold,
                                     color: UserPreferences().mainTextColor),
-                          ), // Affiche les genres
-                          const SizedBox(height: 8),
-                          ElevatedButton(
-                            onPressed: () => ApiService().payCart(cart), 
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: UserPreferences().newWorldColor,
-                              foregroundColor: UserPreferences().mainTextColor,
-                            ),
-                            child: Text('Payer'),
                           ),
+                          const SizedBox(height: 8),
                           for (Product produit in cart.produits)
                             ListTile(
                               title: Text(
-                                produit.nom,
+                                '${produit.nom} (${produit.panierQuantite.toStringAsFixed(1)} x ${produit.prix.toStringAsFixed(2)}€)',
                                 style: TextStyle(
                                     color: UserPreferences().mainTextColor),
                               ),
                               subtitle: Text(
-                                'Plus de détails...',
+                                'Prix: ${(produit.prix * produit.panierQuantite).toStringAsFixed(2)}€',
                                 style: TextStyle(
                                     color:
                                         UserPreferences().secondaryTextColor),
                               ),
+                              trailing: IconButton(
+                                icon: Icon(Icons.delete, color: Colors.red),
+                                onPressed: () async {
+                                  await ApiService().removeFromCart(cart.id, produit.id);
+                                  if (context.mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(content: Text('${produit.nom} retiré du panier')),
+                                    );
+                                    setState(() => _cartFuture = ApiService().getCart(widget.cartId));
+                                  }
+                                },
+                              ),
                               onTap: () async {
-                                // Requête vers l'API pour récupérer toutes les informations
-                                // complémentaires du produit
                                 final detailedProduct =
                                     await ApiService().getProduct(produit.id);
                                 if (detailedProduct != null) {
-                                  // Navigue vers le ProductScreen avec les détails du produit
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
@@ -146,7 +197,6 @@ class _CartScreenState extends State<CartScreen> {
                 ),
               );
             } else {
-// Gestion du cas où `cart` est null
               return const Center(child: Text("panier non trouvé"));
             }
           } else {

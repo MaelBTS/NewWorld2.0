@@ -25,11 +25,16 @@ class MainApp extends StatefulWidget {
 class _MainAppState extends State<MainApp> {
   LoadingStatus _loadingStatus = LoadingStatus.loading;
   List<Product>? _products;
+  int _authKey = 0;
 
   @override
   void initState() {
     super.initState();
     _fetchProducts();
+  }
+
+  void _onAuthChanged() {
+    setState(() => _authKey++);
   }
 
   Future<void> _fetchProducts() async {
@@ -44,8 +49,6 @@ class _MainAppState extends State<MainApp> {
 
       _products = await service.getProducts(1);
 
-      Product? product = await service.getProduct(1);
-
       _loadingStatus = LoadingStatus.success;
     } catch (e, st) {
   debugPrint('Erreur de chargement : $e');
@@ -58,27 +61,25 @@ class _MainAppState extends State<MainApp> {
 
   @override
   Widget build(BuildContext context) {
-    Widget screen;
-
-    switch (_loadingStatus) {
-      case LoadingStatus.success:
-        screen = AppTabController(products: _products);
-        break;
-      default:
-        screen = StartScreen(
+    if (_loadingStatus != LoadingStatus.success) {
+      return MaterialApp(
+        theme: ThemeNewWorld.theme(),
+        debugShowCheckedModeBanner: false,
+        home: StartScreen(
           loadingStatus: _loadingStatus,
           onReload: _fetchProducts,
-        );
-        break;
+        ),
+      );
     }
 
-    // Test d'accès à Youtube
-    //screen = const YoutubeVideoScreen(videoId: '-6lMRysFhrM');
-
     return MaterialApp(
-      home: screen,
+      key: ValueKey('app_$_authKey'),
       theme: ThemeNewWorld.theme(),
       debugShowCheckedModeBanner: false,
+      home: AppTabController(
+        products: _products,
+        onAuthChanged: _onAuthChanged,
+      ),
     );
   }
 }

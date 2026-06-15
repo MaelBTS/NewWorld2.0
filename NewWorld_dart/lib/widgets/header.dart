@@ -15,9 +15,10 @@ import '../screens/user_gestion_screen.dart';
 class AppTabController extends StatefulWidget {
   /// Liste des produits populaires chargés à l'initialisation de l'application
   final List<Product>? _products;
+  final VoidCallback? onAuthChanged;
 
   /// Constructeur de notre widget
-  const AppTabController({super.key, required List<Product>? products})
+  const AppTabController({super.key, required List<Product>? products, this.onAuthChanged})
     : _products = products;
 
   /// Surcharge de la gestion d'état
@@ -34,80 +35,58 @@ class _AppTabControllerState extends State<AppTabController>
   @override
   void initState() {
     super.initState();
-    if (UserPreferences().isLoggedIn == true) {
-      _tabController = TabController(length: 4, vsync: this);
-    } else {
-      _tabController = TabController(length: 3, vsync: this);
-    }
-    // Ajout de l'écouteur
+    _tabController = TabController(
+      length: UserPreferences().isLoggedIn == true ? 4 : 3,
+      vsync: this,
+    );
     _tabController!.addListener(_handleTabSelection);
-    setFuture();
+    _loadData();
   }
 
-  Future<void> setFuture() async {
-    User user = await loadUser();
-    setState(() {
-      // ← notifie Flutter que les données sont prêtes
-      _userFuture = user;
-    });
-    int cartId = await loadCartId();
-    setState(() {
-      // ← notifie Flutter que les données sont prêtes
-      _cartFuture = cartId;
-    });
+  @override
+  void dispose() {
+    _tabController?.dispose();
+    super.dispose();
+  }
+
+  Future<void> _loadData() async {
+    if (UserPreferences().isLoggedIn != true) return;
+    try {
+      User user = await ApiService().getUser(UserPreferences().userId!);
+      if (!mounted) return;
+      setState(() => _userFuture = user);
+      int? cartId = await ApiService().getCartIdByUserId(user.id);
+      if (!mounted) return;
+      setState(() => _cartFuture = cartId);
+    } catch (_) {}
   }
 
   void _onLoginSuccess() {
-    setState(() {
-      _tabController?.dispose();
-      _tabController = TabController(length: 4, vsync: this);
-      _tabController!.addListener(_handleTabSelection);
-    });
-    setFuture();
+    widget.onAuthChanged?.call();
   }
 
   void _onLogoutSuccess() {
-    setState(() {
-      _tabController?.dispose();
-      _tabController = TabController(length: 3, vsync: this);
-      _tabController!.addListener(_handleTabSelection);
-    });
-    setFuture();
-  }
-
-  /// Méthode asynchrone chargeant la liste de produits du panier.
-  Future<int> loadCartId() async {
-    final cartId = await ApiService().getCartIdByUserId(_userFuture!.id) ?? -1;
-    if (cartId == -1) {
-      throw Exception('Panier introuvable pour l\'utilisateur');
-    }
-    return cartId;
-  }
-
-  /// Méthode asynchrone chargeant l'utilisateur connecté.
-  Future<User> loadUser() async {
-    final userId = UserPreferences().userId; // ou équivalent
-    if (userId == null || userId == 0) {
-      throw Exception('Utilisateur non connecté');
-    } // ✅ ne pas appeler si pas connecté
-    return await ApiService().getUser(userId);
+    widget.onAuthChanged?.call();
   }
 
   Future<void> _handleTabSelection() async {
-    if (_tabController!.indexIsChanging) {
+    if (!_tabController!.indexIsChanging) return;
+    if (UserPreferences().isLoggedIn != true) return;
+    try {
       if (_tabController!.index == 1 && _cartFuture == null) {
-        final cartId = await loadCartId();
-        setState(() => _cartFuture = cartId);
+        int? cartId = await ApiService().getCartIdByUserId(_userFuture!.id);
+        if (mounted) setState(() => _cartFuture = cartId);
       } else if (_tabController!.index == 2 && _userFuture == null) {
-        final user = await loadUser();
-        setState(() => _userFuture = user);
+        User user = await ApiService().getUser(UserPreferences().userId!);
+        if (mounted) setState(() => _userFuture = user);
       }
-    }
+    } catch (_) {}
   }
 
-  // Construction du contexte
   @override
   Widget build(BuildContext context) {
+    final isLoggedIn = UserPreferences().isLoggedIn == true;
+
     return Scaffold(
       appBar: AppBar(
         title: const Center(child: Text('New World')),
@@ -115,7 +94,7 @@ class _AppTabControllerState extends State<AppTabController>
         foregroundColor: UserPreferences().mainTextColor,
         bottom: TabBar(
           controller: _tabController,
-          tabs: UserPreferences().isLoggedIn == true
+          tabs: isLoggedIn
               ? [
                   Tab(icon: Icon(Icons.home), text: 'Accueil'),
                   Tab(icon: Icon(Icons.shopping_cart), text: 'Panier'),
@@ -133,7 +112,7 @@ class _AppTabControllerState extends State<AppTabController>
       ),
       body: TabBarView(
         controller: _tabController,
-        children: UserPreferences().isLoggedIn == true
+        children: isLoggedIn
             ? [
                 Container(
                   color: UserPreferences().backgroundColor,

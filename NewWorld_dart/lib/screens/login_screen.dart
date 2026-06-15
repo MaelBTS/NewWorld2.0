@@ -43,9 +43,6 @@ class _LoginScreenState extends State<LoginScreen> {
         UserPreferences().username = email;
         UserPreferences().isLoggedIn = true; // ✅ marquer l'utilisateur comme connecté
         widget.onLogin?.call(); // ✅ navigation après login
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('bienvenue')),
-        );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Email ou mot de passe incorrect')),

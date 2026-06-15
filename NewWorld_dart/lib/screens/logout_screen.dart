@@ -18,9 +18,6 @@ class LogoutScreen extends StatelessWidget {
             UserPreferences().userId = null;
             UserPreferences().username = null;
             onLogout?.call(); // ✅ navigation après déconnexion
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Vous êtes déconnecté')),
-            );
           },
           icon: const Icon(Icons.logout),
           label: const Text('Se déconnecter'),

@@ -42,11 +42,10 @@ class Cart {
     required this.date_livraison,
     required this.commentaire,
     required this.produits,
-    double totalPrice = 0.0,
-  }) {
+    }) {
     totalPrice = 0.0;
     for (Product produit in produits) {
-      totalPrice += produit.prix;
+      totalPrice += produit.prix * produit.panierQuantite;
     }
   }
 

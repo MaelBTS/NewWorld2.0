@@ -7,11 +7,15 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
+use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\GetCollection;
+
+#[ApiFilter(SearchFilter::class, properties: ['user' => 'exact'])]
 
 #[ApiResource(operations: [
     new Get(),
@@ -46,7 +50,7 @@ class Panier
     /**
      * @var Collection<int, ProduitPanier>
      */
-    #[ORM\OneToMany(targetEntity: ProduitPanier::class, mappedBy: 'panier')]
+    #[ORM\OneToMany(targetEntity: ProduitPanier::class, mappedBy: 'panier', cascade: ['persist', 'remove'])]
     private Collection $produitPaniers;
 
     public function __construct()

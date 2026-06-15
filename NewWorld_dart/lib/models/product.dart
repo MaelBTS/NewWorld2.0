@@ -29,6 +29,8 @@ class Product {
   double quantite = 0.0;
   String producteur = "";
   int idProduitSurLeTemps;
+  int? liaisonId;        // ID dans la table produit_panier (pour update/delete)
+  double panierQuantite = 0.0; // Quantité dans le panier
 
    Product({
     required this.id,
@@ -39,5 +41,7 @@ class Product {
     this.quantite = 0.0,
     this.producteur = "",
     this.idProduitSurLeTemps = 0,
+    this.liaisonId,
+    this.panierQuantite = 0.0,
   });
 }

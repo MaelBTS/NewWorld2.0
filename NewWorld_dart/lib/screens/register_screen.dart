@@ -120,7 +120,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                   await ApiService().postUser(
                                     _emailController.text.trim(),
                                     _passwordController.text.trim(),
-                                    ["user"],
+                                    [],
                                   );
 
                                   if (context.mounted) {
