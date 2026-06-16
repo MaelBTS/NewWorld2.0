@@ -47,6 +47,13 @@ class _CartScreenState extends State<CartScreen> {
             if (cart != null) {
 // Mettre à jour le titre de l'appBar une fois que le
 // produit est chargé
+
+              if (UserPreferences().role == 'commercant') {
+                cart.totalPriceHT;
+              } else {
+                cart.totalPriceTTC;
+              }
+
               WidgetsBinding.instance.addPostFrameCallback((_) {
                 setState(() {
                   appBarTitle = cart.utilisateur.email;
@@ -103,7 +110,7 @@ class _CartScreenState extends State<CartScreen> {
                                   context: context,
                                   builder: (ctx) => AlertDialog(
                                     title: const Text('Confirmer le paiement'),
-                                    content: Text('Total: ${cart.totalPrice.toStringAsFixed(2)}€\nConfirmer le paiement ?'),
+                                    content: Text('Total: ${cart.totalPrice.toStringAsFixed(2)}€ ${UserPreferences().role == 'commercant' ? '(HT)' : '(TTC)'}\nConfirmer le paiement ?'),
                                     actions: [
                                       TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Annuler')),
                                       ElevatedButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Payer')),
@@ -136,7 +143,7 @@ class _CartScreenState extends State<CartScreen> {
                             const SizedBox(height: 12),
                           ],
                           Text(
-                            'Total: ${cart.totalPrice.toStringAsFixed(2)}€',
+                            'Total: ${cart.totalPrice.toStringAsFixed(2)}€ ${UserPreferences().role == 'commercant' ? '(HT)' : '(TTC)'}',
                             style: Theme.of(context)
                                 .textTheme
                                 .titleMedium
@@ -148,12 +155,12 @@ class _CartScreenState extends State<CartScreen> {
                           for (Product produit in cart.produits)
                             ListTile(
                               title: Text(
-                                '${produit.nom} (${produit.panierQuantite.toStringAsFixed(1)} x ${produit.prix.toStringAsFixed(2)}€)',
+                                '${produit.nom} (${produit.panierQuantite.toStringAsFixed(1)} x ${UserPreferences().role == 'commercant' ? produit.prix.toStringAsFixed(2) : (produit.prix * (1 + produit.tva / 100)).toStringAsFixed(2)}€)',
                                 style: TextStyle(
                                     color: UserPreferences().mainTextColor),
                               ),
                               subtitle: Text(
-                                'Prix: ${(produit.prix * produit.panierQuantite).toStringAsFixed(2)}€',
+                                'Prix: ${(UserPreferences().role == 'commercant' ? produit.prix * produit.panierQuantite : (produit.prix * produit.panierQuantite * (1 + produit.tva / 100))).toStringAsFixed(2)}€ ${UserPreferences().role == 'commercant' ? '(HT)' : '(TTC)'}',
                                 style: TextStyle(
                                     color:
                                         UserPreferences().secondaryTextColor),

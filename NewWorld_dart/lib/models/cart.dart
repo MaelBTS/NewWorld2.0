@@ -47,13 +47,15 @@ class Cart {
     }
 
   double get totalPriceTTC {
+    totalPrice = 0.0; // Réinitialiser totalPrice avant le calcul
     for (Product produit in produits) {
-      totalPrice += produit.prix * produit.panierQuantite * (produit.tva /100);
+      totalPrice += produit.prix * produit.panierQuantite * (1 + produit.tva / 100);
     }
     return totalPrice;
   }
 
   double get totalPriceHT {
+    totalPrice = 0.0; // Réinitialiser totalPrice avant le calcul
     for (Product produit in produits) {
       totalPrice += produit.prix * produit.panierQuantite;
     }
