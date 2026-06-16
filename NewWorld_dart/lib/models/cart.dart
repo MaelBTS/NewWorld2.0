@@ -43,10 +43,21 @@ class Cart {
     required this.commentaire,
     required this.produits,
     }) {
-    totalPrice = 0.0;
+      totalPrice = 0.0; // Initialiser totalPrice à 0.0
+    }
+
+  double get totalPriceTTC {
+    for (Product produit in produits) {
+      totalPrice += produit.prix * produit.panierQuantite * (produit.tva /100);
+    }
+    return totalPrice;
+  }
+
+  double get totalPriceHT {
     for (Product produit in produits) {
       totalPrice += produit.prix * produit.panierQuantite;
     }
+    return totalPrice;
   }
 
   String toString() {
