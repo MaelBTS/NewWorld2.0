@@ -676,7 +676,7 @@ class ApiService {
         'type': 'cart',
         'ancien_id': cart.id,
         'data': cart.toString(),
-        'date_archivage': nowStr.substring(0, 10),
+        'date_archivage': nowStr,
       },
     );
 
@@ -743,7 +743,7 @@ class ApiService {
         'type': 'user',
         'ancien_id': user.id,
         'data': user.toString(),
-        'date_archivage': DateTime.now().toIso8601String().substring(0, 10),
+        'date_archivage': DateTime.now().toIso8601String(),
       },
     );
     return 1;
