@@ -163,7 +163,7 @@ class _CartScreenState extends State<CartScreen> {
                                 'Prix: ${(UserPreferences().role == 'commercant' ? produit.prix * produit.panierQuantite : (produit.prix * produit.panierQuantite * (1 + produit.tva / 100))).toStringAsFixed(2)}€ ${UserPreferences().role == 'commercant' ? '(HT)' : '(TTC)'}',
                                 style: TextStyle(
                                     color:
-                                        UserPreferences().secondaryTextColor),
+                                        UserPreferences().mainTextColor),
                               ),
                               trailing: IconButton(
                                 icon: Icon(Icons.delete, color: Colors.red),
