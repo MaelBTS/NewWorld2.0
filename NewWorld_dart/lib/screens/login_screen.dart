@@ -41,6 +41,14 @@ class _LoginScreenState extends State<LoginScreen> {
       if (user != null) {
         UserPreferences().userId = user.id; // ✅ stocker l'ID utilisateur
         UserPreferences().username = email;
+        for (String role in user.roles) {
+          if (role == 'particulier') {
+            UserPreferences().role = 'particulier'; // ✅ stocker le rôle de l'utilisateur
+            break;
+          } else {
+            UserPreferences().role = 'commercant'; // ✅ stocker le rôle de l'utilisateur
+          }
+        }
         UserPreferences().isLoggedIn = true; // ✅ marquer l'utilisateur comme connecté
         widget.onLogin?.call(); // ✅ navigation après login
       } else {

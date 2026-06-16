@@ -55,6 +55,16 @@ class UserPreferences {
     _prefs?.setString('username', value!);
   }
 
+  /// Getter pour 'role'. Retourne la valeur ou null si non défini.
+  String? get role {
+    return _prefs?.getString('role');
+  }
+
+  /// Setter pour 'role'. Enregistre la valeur dans SharedPreferences.
+  set role(String? value) {
+    _prefs?.setString('role', value!);
+  }
+
   /// Getter pour 'new_world_color'. Retourne la valeur ou null si non défini.
   Color get newWorldColor {
     // Récupération de la valeur

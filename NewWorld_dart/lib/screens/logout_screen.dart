@@ -17,6 +17,7 @@ class LogoutScreen extends StatelessWidget {
             UserPreferences().isLoggedIn = false; // ✅ effacer les préférences utilisateur
             UserPreferences().userId = null;
             UserPreferences().username = null;
+            UserPreferences().role = null; // ✅ effacer le rôle de l'utilisateur
             onLogout?.call(); // ✅ navigation après déconnexion
           },
           icon: const Icon(Icons.logout),
