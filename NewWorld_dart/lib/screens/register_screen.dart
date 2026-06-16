@@ -15,12 +15,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _tvaController = TextEditingController();
+  bool _isIndividual = true;
   bool _isSubmitting = false;
 
   @override
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
+    _tvaController.dispose();
     super.dispose();
   }
 
@@ -100,6 +103,43 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           return null;
                         },
                       ),
+                      const SizedBox(height: 16),
+                      RadioGroup<bool>(
+                        groupValue: _isIndividual,
+                        onChanged: (value) {
+                          setState(() {
+                            _isIndividual = value ?? true;
+                          });
+                        },
+                        child: RadioListTile<bool>(
+                          title: const Text('commercant'),
+                          value: false,
+                          toggleable: true,
+                        ),
+                      ),
+                      if (!_isIndividual) ...[
+                        const SizedBox(height: 16),
+                        TextFormField(
+                          controller: _tvaController,
+                          keyboardType: TextInputType.number,
+                          style: TextStyle(
+                            color: UserPreferences().mainTextColor,
+                          ),
+                          decoration: InputDecoration(
+                            labelText: 'Numero tva intracommunautaire',
+                            border: const OutlineInputBorder(),
+                            labelStyle: TextStyle(
+                              color: UserPreferences().mainTextColor,
+                            ),
+                          ),
+                          validator: (value) {
+                            if (value == null || value.trim().isEmpty) {
+                              return 'Veuillez saisir votre numéro de tva intracommunautaire';
+                            }
+                            return null;
+                          },
+                        ),
+                      ],
                       const SizedBox(height: 24),
                       ElevatedButton(
                         style: ElevatedButton.styleFrom(
@@ -110,7 +150,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         onPressed: _isSubmitting
                             ? null
                             : () async {
-                                if (!_formKey.currentState!.validate()) return; // ✅ validation
+                                if (!_formKey.currentState!.validate())
+                                  return; // ✅ validation
 
                                 setState(
                                   () => _isSubmitting = true,
@@ -120,7 +161,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                   await ApiService().postUser(
                                     _emailController.text.trim(),
                                     _passwordController.text.trim(),
-                                    [],
+                                    [_isIndividual ? 'particulier' : 'commercant'],
                                   );
 
                                   if (context.mounted) {
@@ -138,7 +179,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                     );
                                   }
                                 } finally {
-                                  if (mounted){
+                                  if (mounted) {
                                     setState(
                                       () => _isSubmitting = false,
                                     ); // ✅ fin chargement

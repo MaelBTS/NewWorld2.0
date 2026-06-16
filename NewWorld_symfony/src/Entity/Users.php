@@ -48,6 +48,9 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToOne(mappedBy: 'user', cascade: ['persist', 'remove'])]
     private ?Panier $panier = null;
 
+    #[ORM\Column(length: 13, nullable: true)]
+    private ?string $numero_tva_intracommunautaire = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -142,6 +145,18 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
         }
 
         $this->panier = $panier;
+
+        return $this;
+    }
+
+    public function getNumeroTvaIntracommunautaire(): ?string
+    {
+        return $this->numero_tva_intracommunautaire;
+    }
+
+    public function setNumeroTvaIntracommunautaire(?string $numero_tva_intracommunautaire): static
+    {
+        $this->numero_tva_intracommunautaire = $numero_tva_intracommunautaire;
 
         return $this;
     }
